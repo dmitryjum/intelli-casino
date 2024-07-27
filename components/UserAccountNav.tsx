@@ -5,6 +5,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import Link from "next/link";
 import { signOut } from 'next-auth/react';
 import { Button } from "./ui/button";
+import { LogOut } from "lucide-react";
 
 type Props = {
   user: Pick<User, "name" | "image" | "email">;
@@ -14,7 +15,7 @@ const UserAccountNav = ({user}: Props) => {
   return(
     <DropdownMenu>
       <DropdownMenuTrigger>
-        <Button>Sign In </Button>
+        <Button>Welcome {user.name} </Button>
       </DropdownMenuTrigger>
 
       <DropdownMenuContent className="bg-white" align="end">
@@ -41,6 +42,7 @@ const UserAccountNav = ({user}: Props) => {
           signOut().catch(console.error)
         }} className="text-red-600 cursor-pointer">
           Sign Out
+          <LogOut className="w-4 h-4 ml-2" />
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
