@@ -17,6 +17,8 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
+import { BookOpen, CopyCheck } from 'lucide-react';
+import { Separator } from './ui/separator';
 
 type Props = {}
 
@@ -35,6 +37,8 @@ const QuizCreation = (props: Props) => {
   function onSubmit(input: Input) {
     alert(JSON.stringify(input, null, 2))
   }
+
+  form.watch(); // rerender entire form when the input fields change, changes the state within the form
 
   return (
     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
@@ -82,6 +86,29 @@ const QuizCreation = (props: Props) => {
                   </FormItem>
                 )}
               />
+              <div className="flex jusify-between">
+                <Button
+                 type='button'                 
+                 variant={form.getValues("type") === "mcq" ? "default" : "secondary"}
+                 className='w-1/2 rounded-none rounded-l-lg'
+                 onClick={() => {
+                  form.setValue('type', 'mcq')
+                 }}
+                >
+                  <CopyCheck className="w-4 h-4 mr-2" /> Multiple Choice
+                </Button>
+                <Separator orientation='vertical' />
+                <Button
+                 type='button'
+                 variant={form.getValues("type") === "open_ended" ? "default" : "secondary"}
+                 className='w-1/2 rounded-none rounded-r-lg'
+                 onClick={() => {
+                  form.setValue('type', 'open_ended')
+                 }}
+                >
+                   <BookOpen className='w-4 h-4 mr-2' /> Open Ended
+                </Button>
+              </div>
               <Button type="submit">Submit</Button>
             </form>
           </Form>
