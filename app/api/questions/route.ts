@@ -37,19 +37,13 @@ export const POST = async(req: Request, res: Response) => {
       )
     }
 
-    return NextResponse.json({
-      questions,
-    }, {status: 200})
+    return NextResponse.json({ questions }, {status: 200})
   } catch (error) {
     if (error instanceof ZodError) {
-      return NextResponse.json(
-        {
-          error: error.issues,
-        },
-        {
-          status: 400,
-        }
-      )
+      return NextResponse.json({ error: error.issues }, { status: 400 })
+    } else {
+      console.error("else gpt error", error);
+      return NextResponse.json({ error: error }, { status: 500 })
     }
   }
 }

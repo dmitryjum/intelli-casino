@@ -14,7 +14,7 @@ export default async function Home() {
         <CardHeader>
           <CardTitle>Welcome to Intelli Casino</CardTitle>
           <CardDescription>
-            Intelli Casino is a quiz app that allows you to place bets on the quiz app as a dealer of the quiz or on the player who's taking it or be the one to play it.
+            Intelli Casino is a quiz app that allows you to place bets on the quiz app as a dealer of the quiz or on the player who is taking it or be the one to play it.
           </CardDescription>
         </CardHeader>
         <CardContent>
