@@ -1,6 +1,10 @@
-import CustomWordCloud from '@/components/CustomWordCloud'
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import React from 'react'
+
+import dynamic from 'next/dynamic'
+
+const CustomWordCloud = dynamic(() => import('@/components/CustomWordCloud'), {ssr: false})
 
 type Props = {}
 
