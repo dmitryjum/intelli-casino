@@ -7,7 +7,7 @@ import { getAuthSession } from "@/lib/nextauth";
 // POST /api/questions
 export const POST = async(req: Request, res: Response) => {
   try {
-    const session = await getAuthSession();
+    // const session = await getAuthSession();
     // if (!session?.user) {
     //   return NextResponse.json({error: "You must be logged in to create a quiz"}, {status: 401});
     // }
