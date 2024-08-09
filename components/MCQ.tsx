@@ -4,6 +4,11 @@ import { ChevronRight, Timer } from 'lucide-react'
 import React from 'react'
 import { Card, CardDescription, CardHeader, CardTitle } from './ui/card'
 import { Button } from './ui/button'
+import MCQCounter from './MCQCounter'
+import { useMutation } from '@tanstack/react-query'
+import axios from 'axios'
+import { z } from 'zod'
+import { checkAnswerSchema } from '@/schemas/form/quiz'
 
 type Props = {
   game: Game & {questions: Pick<Question, 'id' | 'options' | 'question'>[]}
@@ -12,9 +17,35 @@ type Props = {
 const MCQ = ({game}: Props) => {
   const [questionIndex, setQuestionIndex] = React.useState(0);
   const [selectedChoice, setSelectedChoice] = React.useState<number>(0);
+  const [correctAnswers, setCorrectAnswers] = React.useState<number>(0);
+  const [wrongAnswers, setWrongAnswers] = React.useState<number>(0);
+
   const currentQuestion = React.useMemo(() => {
     return game.questions[questionIndex]
   }, [questionIndex, game.questions]);
+  
+  const {mutate: checkAnswer, isLoading: isChecking} = useMutation({
+    mutationFn: async() => {
+      const payload: z.infer<typeof checkAnswerSchema> = {
+        questionId: currentQuestion.id,
+        userAnswer: options[selectedChoice],
+      }
+      const response = await axios.post('/api/checkAnswer', payload);
+      return response.data
+    }
+  });
+
+  const handleNext = React.useCallback(() => {
+    checkAnswer(undefined, {
+      onSuccess: ({isCorrect}) => {
+        if (isCorrect) {
+          setCorrectAnswers((prev) => prev + 1);
+        } else {
+          setWrongAnswers((prev) => prev + 1);
+        }
+      }
+    })
+  }, [])
 
   const options = React.useMemo(() => {
     if (!currentQuestion) return []
@@ -25,16 +56,18 @@ const MCQ = ({game}: Props) => {
   return (
     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 md:w-[80vw] max-w-4xl w-[90wv]">
       <div className="flex flex-row justify-between">
-        {/* topic */}
-        <p>
-          <span className="mr-2 text-slate-400">Topic</span>
-          <span className="px-2 py-1 text-white rounded-lg bg-slate-800">{game.topic}</span>
-        </p>
-        <div className="flex self-start mt-3 text-slate-400">
-          <Timer className="mr-2" />
-          <span>00:00</span>
+        <div className="flex flex-col">
+          {/* topic */}
+          <p>
+            <span className="mr-2 text-slate-400">Topic</span>
+            <span className="px-2 py-1 text-white rounded-lg bg-slate-800">{game.topic}</span>
+          </p>
+          <div className="flex self-start mt-3 text-slate-400">
+            <Timer className="mr-2" />
+            <span>00:00</span>
+          </div>
         </div>
-        {/* <MCQCounter /> */}
+        <MCQCounter correctAnswers={3} wrongAnswers={4} />
       </div>
       <Card className='w-full mt-4'>
         <CardHeader className='flex flex-row -items-center'>
