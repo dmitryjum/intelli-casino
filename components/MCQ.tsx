@@ -9,6 +9,7 @@ import { useMutation } from '@tanstack/react-query'
 import axios from 'axios'
 import { z } from 'zod'
 import { checkAnswerSchema } from '@/schemas/form/quiz'
+import { useToast } from './ui/use-toast'
 
 type Props = {
   game: Game & {questions: Pick<Question, 'id' | 'options' | 'question'>[]}
@@ -19,6 +20,7 @@ const MCQ = ({game}: Props) => {
   const [selectedChoice, setSelectedChoice] = React.useState<number>(0);
   const [correctAnswers, setCorrectAnswers] = React.useState<number>(0);
   const [wrongAnswers, setWrongAnswers] = React.useState<number>(0);
+  const {toast} = useToast();
 
   const currentQuestion = React.useMemo(() => {
     return game.questions[questionIndex]
@@ -36,16 +38,47 @@ const MCQ = ({game}: Props) => {
   });
 
   const handleNext = React.useCallback(() => {
+    if(isChecking) return;
     checkAnswer(undefined, {
       onSuccess: ({isCorrect}) => {
         if (isCorrect) {
+          toast({
+            title: "Correct answer!",
+            variant: 'success'
+          })
           setCorrectAnswers((prev) => prev + 1);
         } else {
+          toast({
+            title: "Incorrect answer!",
+            variant: 'destructive'
+          })
           setWrongAnswers((prev) => prev + 1);
         }
+        setQuestionIndex((prev) => prev + 1);
       }
     })
-  }, [])
+  }, [checkAnswer, toast, isChecking]);
+
+  React.useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === '1') {
+        setSelectedChoice(0);
+      } else if (event.key === '2') {
+        setSelectedChoice(1);
+      } else if (event.key === '3') {
+        setSelectedChoice(2);
+      } else if (event.key === '4') {
+        setSelectedChoice(3);
+      } else if (event.key === 'Enter') {
+        handleNext();
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    }
+  }, [handleNext]);
 
   const options = React.useMemo(() => {
     if (!currentQuestion) return []
@@ -97,7 +130,9 @@ const MCQ = ({game}: Props) => {
             </Button>
           )
         })}
-        <Button className='mt-2'>
+        <Button className='mt-2' disabled={isChecking} onClick={() => {
+          handleNext();
+        }}>
           Next <ChevronRight className="w-4 h-4 ml-2" />
         </Button>
       </div>
