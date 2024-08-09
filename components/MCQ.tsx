@@ -1,15 +1,17 @@
 'use client'
 import { Game, Question } from '@prisma/client'
-import { ChevronRight, Timer } from 'lucide-react'
+import { BarChart, ChevronRight, Loader2, Timer } from 'lucide-react'
 import React from 'react'
 import { Card, CardDescription, CardHeader, CardTitle } from './ui/card'
-import { Button } from './ui/button'
+import { Button, buttonVariants } from './ui/button'
 import MCQCounter from './MCQCounter'
 import { useMutation } from '@tanstack/react-query'
 import axios from 'axios'
 import { z } from 'zod'
 import { checkAnswerSchema } from '@/schemas/form/quiz'
 import { useToast } from './ui/use-toast'
+import Link from 'next/link'
+import { cn } from '@/lib/utils'
 
 type Props = {
   game: Game & {questions: Pick<Question, 'id' | 'options' | 'question'>[]}
@@ -20,6 +22,7 @@ const MCQ = ({game}: Props) => {
   const [selectedChoice, setSelectedChoice] = React.useState<number>(0);
   const [correctAnswers, setCorrectAnswers] = React.useState<number>(0);
   const [wrongAnswers, setWrongAnswers] = React.useState<number>(0);
+  const [hasEnded, setHasEnded] = React.useState<boolean>(false);
   const {toast} = useToast();
 
   const currentQuestion = React.useMemo(() => {
@@ -54,10 +57,14 @@ const MCQ = ({game}: Props) => {
           })
           setWrongAnswers((prev) => prev + 1);
         }
+        if (questionIndex === game.questions.length -1) {
+          setHasEnded(true);
+          return;
+        }
         setQuestionIndex((prev) => prev + 1);
       }
     })
-  }, [checkAnswer, toast, isChecking]);
+  }, [checkAnswer, toast, isChecking, questionIndex, game.questions.length]);
 
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -85,7 +92,21 @@ const MCQ = ({game}: Props) => {
     if (!currentQuestion.options) return []
 
     return JSON.parse(currentQuestion.options as string) as string[];
-  }, [currentQuestion])
+  }, [currentQuestion]);
+
+  if (hasEnded) {
+    return (
+      <div className="absolute flex flex-col justify-center top-1/2 left-1/2 -translate-x-1/2 top-1/2 left-1/2">
+        <div className="px-4 mt-2 font-semibold text-white bg-green-500 rounded-md whitespace-nowrap">
+          You completed in {'3min 4s'}
+        </div>
+        <Link href={`/statistics/${game.id}`} className={cn(buttonVariants(), "mt-2")}>
+          View Statistics
+          <BarChart className="w-4 h-4 ml-2" />
+        </Link>
+      </div>
+    )
+  }
   return (
     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 md:w-[80vw] max-w-4xl w-[90wv]">
       <div className="flex flex-row justify-between">
@@ -100,7 +121,7 @@ const MCQ = ({game}: Props) => {
             <span>00:00</span>
           </div>
         </div>
-        <MCQCounter correctAnswers={3} wrongAnswers={4} />
+        <MCQCounter correctAnswers={correctAnswers} wrongAnswers={wrongAnswers} />
       </div>
       <Card className='w-full mt-4'>
         <CardHeader className='flex flex-row -items-center'>
@@ -133,6 +154,7 @@ const MCQ = ({game}: Props) => {
         <Button className='mt-2' disabled={isChecking} onClick={() => {
           handleNext();
         }}>
+          {isChecking && <Loader2 className='2-4 h-4 mr-2 animated-spin' />}
           Next <ChevronRight className="w-4 h-4 ml-2" />
         </Button>
       </div>
