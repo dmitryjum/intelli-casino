@@ -3,11 +3,12 @@ import keyword_extractor from 'keyword-extractor'
 
 type Props = {
   answer: string;
+  setBlankAnswer: React.Dispatch<React.SetStateAction<string>>;
 }
 
 const BLANKS = '_____';
 
-const BlankAnswerInput = ({answer}: Props) => {
+const BlankAnswerInput = ({answer, setBlankAnswer}: Props) => {
   const keywords = React.useMemo(() => {
     const words = keyword_extractor.extract(answer, {
       language: "english",
@@ -22,20 +23,23 @@ const BlankAnswerInput = ({answer}: Props) => {
   const answerWithBlanks = React.useMemo(() => {
     const answerWithBlanks = keywords.reduce((acc, keyword) => {
       return acc.replace(keyword, BLANKS) 
-    }, answer)
+    }, answer);
+    setBlankAnswer(answerWithBlanks);
     return answerWithBlanks
-  }, [keywords, answer]);
-
+  }, [keywords, answer, setBlankAnswer]);
+  
   return (
     <div className="flex justify-start w-full mt-4">
       <h1 className="text-xl font-semibold">
         {
           answerWithBlanks.split(BLANKS).map((part, index) => {
             return(
-              <>
+              <React.Fragment key={index}>
                 {part}
-                <input type="text" id="user-blank-input" className={"text-center border-b-2 border-black dark:border-white w-28 focus:border-2 focus:border-b-4 focus:outline-none"} />
-              </>
+                {index === answerWithBlanks.split(BLANKS).length - 1 ? null : (
+                  <input type="text" id="user-blank-input" className={"text-center border-b-2 border-black dark:border-white w-28 focus:border-2 focus:border-b-4 focus:outline-none"} />
+                )}                
+              </React.Fragment>
             )
           })
         }
