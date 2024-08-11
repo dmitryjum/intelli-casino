@@ -11,6 +11,7 @@ import { useMutation } from '@tanstack/react-query';
 import { z } from 'zod';
 import { checkAnswerSchema } from '@/schemas/form/quiz';
 import axios from 'axios';
+import BlankAnswerInput from './BlankAnswerInput';
 
 type Props = {
   game: Game & {questions: Pick<Question, 'id' | 'question' | 'answer'>[] };
@@ -21,6 +22,9 @@ const OpenEnded = ({ game }: Props) => {
   const [hasEnded, setHasEnded] = React.useState<boolean>(false);
   const {toast} = useToast();
   const [now, setNow] = React.useState<Date>(new Date());
+  const currentQuestion = React.useMemo(() => {
+    return game.questions[questionIndex]
+  }, [questionIndex, game.questions]);
 
   React.useEffect(() => {
     const interval = setInterval(() => {
@@ -31,9 +35,6 @@ const OpenEnded = ({ game }: Props) => {
     return () => { clearInterval(interval) }
   }, [hasEnded])
 
-  const currentQuestion = React.useMemo(() => {
-    return game.questions[questionIndex]
-  }, [questionIndex, game.questions]);
 
   const {mutate: checkAnswer, isLoading: isChecking} = useMutation({
     mutationFn: async() => {
@@ -104,7 +105,7 @@ const OpenEnded = ({ game }: Props) => {
         </CardHeader>
       </Card>
       <div className="flex flex-col items-center justify-center w-full mt-4">
-        
+        <BlankAnswerInput answer={currentQuestion.answer} />
         <Button className='mt-2' disabled={isChecking} onClick={() => {
           handleNext();
         }}>
