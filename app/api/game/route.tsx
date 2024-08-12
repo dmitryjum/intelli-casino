@@ -71,8 +71,9 @@ export async function POST(req: Request, res: Response) {
         data: manyData
       })
     }
+    
     return NextResponse.json({
-      gameId: game.userId
+      gameId: game.id
     });
   } catch (error: any) {
     if (error instanceof ZodError) {

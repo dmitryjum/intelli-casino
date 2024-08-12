@@ -30,7 +30,8 @@ type Input = z.infer<typeof quizCreationSchema>
 
 const QuizCreation = (props: Props) => {
   const router = useRouter();
-  const [showLoader, setShowLoader] = React.useState(true);
+  const [showLoader, setShowLoader] = React.useState(false);
+  const [finished, setFinished] = React.useState(false);
   const {mutate: getQuestions, isLoading} = useMutation({
     mutationFn: async ({amount, topic, type}: Input) => {
 
@@ -52,24 +53,31 @@ const QuizCreation = (props: Props) => {
   });
 
   function onSubmit(input: Input) {
+    setShowLoader(true);
     getQuestions({
       amount: input.amount,
       topic: input.topic,
       type: input.type,
     }, {
       onSuccess: ({gameId}) => {
-        if (form.getValues('type') === 'open_ended') {
-          router.push(`/play/open-ended/${gameId}`)
-        } else {
-          router.push(`/play/mcq/${gameId}`)
-        }
+        setFinished(true);
+        setTimeout(() => {
+          if (form.getValues('type') === 'open_ended') {
+            router.push(`/play/open-ended/${gameId}`)
+          } else {
+            router.push(`/play/mcq/${gameId}`)
+          }
+        }, 1000)
+      },
+      onError: () => {
+        setShowLoader(false);
       }
     })
   }
 
   form.watch(); // rerender entire form when the input fields change, changes the state within the form
   if(showLoader) {
-    return <LoadingQuestions />;
+    return <LoadingQuestions finished={finished} />;
   }
 
   return (
