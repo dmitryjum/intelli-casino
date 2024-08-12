@@ -88,6 +88,6 @@ model Question {
 
 model TopicCount {
   id String @id @default(cuid())
-  topic String
+  topic String @unique
   count Int
 }
