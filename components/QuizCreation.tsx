@@ -121,7 +121,8 @@ const QuizCreation = ({ topicParam }: Props) => {
                        min={1}
                        max={10}
                        onChange={e => {
-                       form.setValue("amount", parseInt(e.target.value));
+                        const value = parseInt(e.target.value);
+                        form.setValue("amount", isNaN(value) ? 1 : value);
                       }} />
                     </FormControl>
                     <FormMessage />
