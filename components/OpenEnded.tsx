@@ -23,12 +23,13 @@ const OpenEnded = ({ game }: Props) => {
   const [blankAnswer, setBlankAnswer] = React.useState<string>("");
   const [hasEnded, setHasEnded] = React.useState<boolean>(false);
   const {toast} = useToast();
-  const [now, setNow] = React.useState<Date>(new Date());
+  const [now, setNow] = React.useState<Date | string>("");
   const currentQuestion = React.useMemo(() => {
     return game.questions[questionIndex]
   }, [questionIndex, game.questions]);
 
   React.useEffect(() => {
+    setNow(new Date());
     const interval = setInterval(() => {
       if (!hasEnded) {
         setNow(new Date());
@@ -38,7 +39,7 @@ const OpenEnded = ({ game }: Props) => {
   }, [hasEnded])
 
 
-  const {mutate: checkAnswer, isLoading: isChecking} = useMutation({
+  const {mutate: checkAnswer, isPending: isChecking} = useMutation({
     mutationFn: async() => {
       let filledAnswer = blankAnswer
       document.querySelectorAll("#user-blank-input").forEach(input => {
@@ -109,7 +110,7 @@ const OpenEnded = ({ game }: Props) => {
           </p>
           <div className="flex self-start mt-3 text-slate-400">
             <Timer className="mr-2" />
-            {formatTimeDelta(differenceInSeconds(now, game.timeStarted))}
+            {now && formatTimeDelta(differenceInSeconds(now, game.timeStarted))}
           </div>
         </div>
         {/* <MCQCounter correctAnswers={correctAnswers} wrongAnswers={wrongAnswers} /> */}

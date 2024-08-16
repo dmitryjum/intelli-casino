@@ -1,10 +1,8 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import React from 'react'
-
 import dynamic from 'next/dynamic'
 import { prisma } from '@/lib/db'
-import { format } from 'path'
 
 const CustomWordCloud = dynamic(() => import('@/components/CustomWordCloud'), {ssr: false})
 

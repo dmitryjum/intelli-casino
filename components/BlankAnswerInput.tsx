@@ -1,3 +1,4 @@
+'use client';
 import React from 'react'
 import keyword_extractor from 'keyword-extractor'
 

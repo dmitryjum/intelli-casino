@@ -19,8 +19,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={cn(inter.className, 'antialiased min-h screen pt-16')}>
+    <html lang="en" suppressHydrationWarning={true}>
+      <body className={cn(inter.className, 'antialiased min-h screen pt-16')} suppressHydrationWarning={true}>
         <Providers>
           <Navbar />
           {children}
