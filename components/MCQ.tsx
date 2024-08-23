@@ -128,7 +128,7 @@ const MCQ = ({game}: Props) => {
           </p>
           <div className="flex self-start mt-3 text-slate-400">
             <Timer className="mr-2" />
-            {formatTimeDelta(differenceInSeconds(now, game.timeStarted))}
+            {now && formatTimeDelta(differenceInSeconds(now, game.timeStarted))}
           </div>
         </div>
         <MCQCounter correctAnswers={correctAnswers} wrongAnswers={wrongAnswers} />
