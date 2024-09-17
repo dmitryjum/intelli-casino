@@ -7,13 +7,15 @@ declare module 'next-auth' {
   interface Session extends DefaultSession {
     user: {
       id: string;
+      role?: string;
     } & DefaultSession['user']
   }
 }
 
 declare module 'next-auth/jwt' {
   interface JWT {
-    id: string
+    id: string;
+    role?: string;
   }
 }
 
@@ -30,6 +32,7 @@ export const authOptions: NextAuthOptions = {
       })
       if(db_user) {
         token.id = db_user.id
+        token.role = db_user.role
       }
       return token
     },
@@ -39,6 +42,7 @@ export const authOptions: NextAuthOptions = {
         session.user.name = token.name
         session.user.email = token.email
         session.user.image = token.picture
+        session.user.role = token.role
       }
       return session
     }
@@ -48,7 +52,10 @@ export const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID as string,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+      profile(profile) {
+        return { role: profile.role ?? "PLAYER", ...profile }
+      },
     })
   ]
 }
