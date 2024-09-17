@@ -1,21 +1,23 @@
 'use client'
 import { User } from "next-auth";
-import React from "react";
+// import { useState, useContext } from 'react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
 import { signOut } from 'next-auth/react';
 import { LogOut } from "lucide-react";
 import UserAvatar from "./UserAvatar";
 import { useSession } from "next-auth/react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
+import { useUserContext } from "@/app/context/UserContext";
 import axios from 'axios';
 
 type Props = {
-  user: Pick<User, "name" | "image" | "email" | "role">;
+  user: Pick<User, "name" | "image" | "email">;
 };
 
 const UserAccountNav = ({user}: Props) => {
   const { data: session, update: updateSession } = useSession();
-  const queryClient = useQueryClient();
+
+  const { userRole, setUserRole } = useUserContext();
 
   const toggleRoleMutation = useMutation({
     mutationFn: async () => {
@@ -24,8 +26,8 @@ const UserAccountNav = ({user}: Props) => {
       return response.data;
     },
     onSuccess: async (data) => {
+      setUserRole(data.role)
       await updateSession({ ...session, user: { ...session?.user, role: data.role } });
-      queryClient.invalidateQueries(['user']);
     },
   });
 
@@ -38,7 +40,7 @@ const UserAccountNav = ({user}: Props) => {
       <DropdownMenuContent className="bg-white" align="end">
         <div className="flex items-center justify-start gap-2 p-2">
           <div className="flex flex-col space-y-1 leading-none">
-            {user.name && <p className="font-medium">{user.name} | {user.role}</p>}
+            {user.name && <p className="font-medium">{user.name} | {userRole}</p>}
             {
               user.email && (
                 <p className="w-[200px] truncate text-sm text-zinc-700">
@@ -50,7 +52,7 @@ const UserAccountNav = ({user}: Props) => {
         </div>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => toggleRoleMutation.mutate()}>
-          Toggle Role (Current: {session?.user?.role})
+          Toggle Role (Current: {userRole})
         </DropdownMenuItem>
 
         <DropdownMenuSeparator />
