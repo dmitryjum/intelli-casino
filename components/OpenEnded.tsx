@@ -13,6 +13,7 @@ import { checkAnswerSchema } from '@/schemas/form/quiz';
 import axios from 'axios';
 import BlankAnswerInput from './BlankAnswerInput';
 import Link from 'next/link';
+import { useUserContext } from '@/app/context/UserContext'
 
 type Props = {
   game: Game & {questions: Pick<Question, 'id' | 'question' | 'answer'>[] };
@@ -23,6 +24,7 @@ const OpenEnded = ({ game }: Props) => {
   const [blankAnswer, setBlankAnswer] = React.useState<string>("");
   const [hasEnded, setHasEnded] = React.useState<boolean>(false);
   const {toast} = useToast();
+  const { userRole } = useUserContext();
   const [now, setNow] = React.useState<Date | string>("");
   const currentQuestion = React.useMemo(() => {
     return game.questions[questionIndex]
@@ -128,12 +130,14 @@ const OpenEnded = ({ game }: Props) => {
       </Card>
       <div className="flex flex-col items-center justify-center w-full mt-4">
         <BlankAnswerInput answer={currentQuestion.answer} setBlankAnswer={setBlankAnswer}/>
-        <Button className='mt-2' disabled={isChecking} onClick={() => {
-          handleNext();
-        }}>
-          {isChecking && <Loader2 className='2-4 h-4 mr-2 animated-spin' />}
-          Next <ChevronRight className="w-4 h-4 ml-2" />
-        </Button>
+        {userRole === "PLAYER" && (
+          <Button className='mt-2' disabled={isChecking} onClick={() => {
+            handleNext();
+          }}>
+            {isChecking && <Loader2 className='2-4 h-4 mr-2 animated-spin' />}
+            Next <ChevronRight className="w-4 h-4 ml-2" />
+          </Button>
+        )}
       </div>
     </div>
   )
