@@ -75,6 +75,7 @@ model Game {
   id      String @id @default(cuid())
   userId  String
   status GameStatus @default(OPEN)
+  openAt DateTime?
   timeStarted DateTime
   topic String
   timeEnded DateTime?
