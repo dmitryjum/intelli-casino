@@ -11,10 +11,6 @@ const ACTIVE_GAMES_SUBSCRIPTION = gql`
       id
       topic
       status
-      openAt
-      gameType
-      timeStarted
-      timeEnded
     }
   }
 `
@@ -33,10 +29,9 @@ type Props = {}
 
 const ActiveGames = (props: Props) => {
   const { data, loading, error } = useSubscription<{ activeGamesUpdated: Game[] }>(ACTIVE_GAMES_SUBSCRIPTION)
-
+  
   if (loading) return <div>Loading...</div>
   if (error) return <div>Error: {error.message}</div>
-
   const activeGames = data?.activeGamesUpdated || []
 
   if (activeGames.length === 0) {
