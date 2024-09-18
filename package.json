@@ -31,6 +31,7 @@
     "date-fns": "^3.6.0",
     "graphql": "^16.9.0",
     "graphql-subscriptions": "^2.0.0",
+    "graphql-tag": "^2.12.6",
     "graphql-ws": "^5.16.0",
     "keyword-extractor": "^0.0.28",
     "lucide-react": "^0.416.0",
