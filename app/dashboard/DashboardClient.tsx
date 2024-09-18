@@ -4,6 +4,7 @@ import QuizMeCard from './QuizMeCard';
 import HistoryCard from './HistoryCard';
 // import HotTopicsCard from './HotTopicsCard';
 // import RecentActivities from './RecentActivities';
+import ActiveGames from './ActiveGames';
 import { useUserContext } from '@/app/context/UserContext'
 import { useEffect } from 'react'
 
@@ -30,6 +31,7 @@ const Dashboard = (props: Props) => {
       <div className="grid gap-4 mt-4 md:grid-cols-2 lg:grid-cols-7">
         {/* <HotTopicsCard /> */}
         {/* <RecentActivities /> */}
+        <ActiveGames />
       </div>
     </main>
   )

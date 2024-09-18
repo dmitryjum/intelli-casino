@@ -13,13 +13,12 @@ const typeDefs = gql`
 
   type Game {
     id: ID!
-    name: String!
     status: GameStatus!
     openAt: String
     type: GameType!
     userId: String!
-    createdAt: String!
-    updatedAt: String!
+    timeStarted: String!
+    timeEnded: String!
   }
 
   type Query {
