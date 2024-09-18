@@ -47,7 +47,7 @@ model User {
   id            String    @id @default(cuid())
   name          String?
   email         String?   @unique
-  role          String?   @default("PLAYER")
+  role          Role   @default(PLAYER)
   emailVerified DateTime?
   image    String?
   accounts Account[]
@@ -55,13 +55,26 @@ model User {
   games Game[]
 }
 
+enum Role {
+  PLAYER
+  SPECTATOR
+}
+
 enum GameType {
   mcq
   open_ended
 }
+
+enum GameStatus {
+  OPEN
+  CLOSED
+  FINISHED
+}
+
 model Game {
   id      String @id @default(cuid())
   userId  String
+  status GameStatus @default(OPEN)
   timeStarted DateTime
   topic String
   timeEnded DateTime?
