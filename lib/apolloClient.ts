@@ -1,18 +1,17 @@
 import { ApolloClient, ApolloProvider, InMemoryCache, split, HttpLink } from '@apollo/client'
 import { getMainDefinition } from '@apollo/client/utilities'
-import { WebSocketLink } from '@apollo/client/link/ws'
+import { GraphQLWsLink } from '@apollo/client/link/subscriptions'
+import { createClient } from 'graphql-ws'
+// import { WebSocketLink } from '@apollo/client/link/ws'
 
 const httpLink = new HttpLink({
   uri: '/api/graphql',
   credentials: 'same-origin',
 })
 
-const wsLink = new WebSocketLink({
-  uri: `ws://${window.location.host}/api/graphql`,
-  options: {
-    reconnect: true,
-  },
-});
+const wsLink = new GraphQLWsLink(createClient({
+  url: "ws://localhost:8080/subscriptions",
+}))
 
 // Using the ability to split links, you can send data to each link
 // depending on what kind of operation is being sent
