@@ -1,11 +1,21 @@
 "use client"
 
 import React from 'react'
-import { useSubscription, gql } from '@apollo/client'
+import { useSubscription, useQuery, gql } from '@apollo/client'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import Link from 'next/link'
 
-const ACTIVE_GAMES_SUBSCRIPTION = gql`
+const GET_ACTIVE_GAMES = gql`
+  query GetActiveGames {
+    activeGames {
+      id
+      topic
+      status
+    }
+  }
+`;
+
+const ACTIVE_GAMES_UPDATED = gql`
   subscription onActiveGamesUpdated {
     activeGamesUpdated {
       id
@@ -28,11 +38,29 @@ type Game = {
 type Props = {}
 
 const ActiveGames = (props: Props) => {
-  const { data, loading, error } = useSubscription<{ activeGamesUpdated: Game[] }>(ACTIVE_GAMES_SUBSCRIPTION)
+  // Fetch initial active games using useQuery
+  const { data, loading, error } = useQuery<{ activeGames: Game[] }>(GET_ACTIVE_GAMES, {
+    fetchPolicy: 'cache-and-network',
+  });
+
+  // Subscribe to activeGamesUpdated using useSubscription
+  useSubscription<{ activeGamesUpdated: Game[] }>(ACTIVE_GAMES_UPDATED, {
+    onSubscriptionData: ({ client, subscriptionData }) => {
+      if (!subscriptionData.data) return;
+
+      const updatedGames: Game[] = subscriptionData.data.activeGamesUpdated;
+
+      // Update the Apollo Client cache with the new active games
+      client.writeQuery({
+        query: GET_ACTIVE_GAMES,
+        data: { activeGames: updatedGames },
+      });
+    },
+  });
   
   if (loading) return <div>Loading...</div>
   if (error) return <div>Error: {error.message}</div>
-  const activeGames = data?.activeGamesUpdated || []
+  const activeGames = data?.activeGames || []
 
   if (activeGames.length === 0) {
     return (

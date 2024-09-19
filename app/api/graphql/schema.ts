@@ -14,6 +14,7 @@ const typeDefs = gql`
   type Game {
     id: ID!
     status: GameStatus!
+    topic: String!
     openAt: String
     type: GameType!
     userId: String!
