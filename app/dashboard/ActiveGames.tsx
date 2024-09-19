@@ -4,26 +4,8 @@ import React from 'react'
 import { useSubscription, useQuery, gql } from '@apollo/client'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import Link from 'next/link'
+import { GET_ACTIVE_GAMES, ACTIVE_GAMES_UPDATED } from '@/app/api/graphql/operations'
 
-const GET_ACTIVE_GAMES = gql`
-  query GetActiveGames {
-    activeGames {
-      id
-      topic
-      status
-    }
-  }
-`;
-
-const ACTIVE_GAMES_UPDATED = gql`
-  subscription onActiveGamesUpdated {
-    activeGamesUpdated {
-      id
-      topic
-      status
-    }
-  }
-`
 
 type Game = {
   id: string

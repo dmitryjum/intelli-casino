@@ -14,6 +14,8 @@ import axios from 'axios';
 import BlankAnswerInput from './BlankAnswerInput';
 import Link from 'next/link';
 import { useUserContext } from '@/app/context/UserContext'
+import { CLOSE_GAME, FINISH_GAME } from '@/app/api/graphql/operations'
+import { useMutation as useApolloMutation } from '@apollo/client'
 
 type Props = {
   game: Game & {questions: Pick<Question, 'id' | 'question' | 'answer'>[] };
@@ -26,9 +28,13 @@ const OpenEnded = ({ game }: Props) => {
   const {toast} = useToast();
   const { userRole } = useUserContext();
   const [now, setNow] = React.useState<Date | string>("");
+
   const currentQuestion = React.useMemo(() => {
     return game.questions[questionIndex]
   }, [questionIndex, game.questions]);
+
+  const [closeGame] = useApolloMutation(CLOSE_GAME);
+  const [finishGame] = useApolloMutation(FINISH_GAME);
 
   React.useEffect(() => {
     setNow(new Date());
@@ -67,12 +73,21 @@ const OpenEnded = ({ game }: Props) => {
         })
         if (questionIndex === game.questions.length -1) {
           setHasEnded(true);
+          finishGame({variables: {gameId: game.id}})
+          .catch((error) => {
+            console.error("Error finishing game", error);
+            toast({
+              title: "Error finishing game",
+              description: "There was an error finishing the game",
+              variant: "destructive",
+            })
+          })
           return;
         }
         setQuestionIndex((prev) => prev + 1);
       }
     })
-  }, [checkAnswer, toast, isChecking, questionIndex, game.questions.length]);
+  }, [checkAnswer, toast, isChecking, questionIndex, game.questions.length, finishGame]);
 
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -86,6 +101,37 @@ const OpenEnded = ({ game }: Props) => {
       document.removeEventListener("keydown", handleKeyDown);
     }
   }, [handleNext]);
+
+  React.useEffect(() => {
+    if (game.status === 'OPEN') {
+      const timerId = setTimeout(() => {
+        closeGame({variables: {gameId: game.id}})
+        .catch((error) => {
+          console.error("Error closing game", error);
+          toast({
+            title: "Error closing game",
+            
+          })
+        })
+      }, 60000)
+      return () => {
+        clearTimeout(timerId);
+      }
+    }
+  }, [game.status, closeGame, game.id, toast]);
+
+  if (game.status === 'OPEN') {
+    return (
+      <div className="absolute flex flex-col justify-center top-1/2 left-1/2 -translate-x-1/2 top-1/2 left-1/2">
+        <div className="px-4 mt-2 font-semibold text-white bg-blue-500 rounded-md whitespace-nowrap">
+          Game will start in 1 minute...
+        </div>
+        <div className="mt-4">
+          <Timer className="w-6 h-6 animate-spin" />
+        </div>
+      </div>
+    )
+  }
 
   if (hasEnded) {
     return (
