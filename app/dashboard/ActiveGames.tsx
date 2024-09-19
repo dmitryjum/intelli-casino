@@ -77,9 +77,9 @@ const ActiveGames = (props: Props) => {
             {activeGames.map((game) => (
               <tr key={game.id} className="hover:bg-gray-100">
                 <td className="border px-4 py-2">
-                  <Link href={`/${game.type.toLowerCase()}/${game.id}`}>
+                  {/* <Link href={`/${game.type}/${game.id}`}> */}
                     <a className="text-blue-500 hover:underline">{game.topic}</a>
-                  </Link>
+                  {/* </Link> */}
                 </td>
                 <td className="border px-4 py-2">
                   <span
