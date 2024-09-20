@@ -4,8 +4,12 @@ export const GET_ACTIVE_GAMES = gql`
   query GetActiveGames {
     activeGames {
       id
-      topic
+      type
       status
+      topic
+      userId
+      timeStarted
+      timeEnded
     }
   }
 `;
@@ -13,9 +17,13 @@ export const GET_ACTIVE_GAMES = gql`
 export const ACTIVE_GAMES_UPDATED = gql`
   subscription onActiveGamesUpdated {
     activeGamesUpdated {
-      id
-      topic
+       id
+      type
       status
+      topic
+      userId
+      timeStarted
+      timeEnded
     }
   }
 `;

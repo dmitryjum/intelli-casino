@@ -27,10 +27,10 @@ const ActiveGames = (props: Props) => {
 
   // Subscribe to activeGamesUpdated using useSubscription
   useSubscription<{ activeGamesUpdated: Game[] }>(ACTIVE_GAMES_UPDATED, {
-    onSubscriptionData: ({ client, subscriptionData }) => {
-      if (!subscriptionData.data) return;
+    onData: ({ client, data }) => {
+      if (!data) return;
 
-      const updatedGames: Game[] = subscriptionData.data.activeGamesUpdated;
+      const updatedGames = data.activeGamesUpdated;
 
       // Update the Apollo Client cache with the new active games
       client.writeQuery({

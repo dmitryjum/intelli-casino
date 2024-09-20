@@ -16,7 +16,7 @@ const typeDefs = gql`
     status: GameStatus!
     topic: String!
     openAt: String
-    type: GameType!
+    type: GameType
     userId: String!
     timeStarted: String!
     timeEnded: String!
