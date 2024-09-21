@@ -16,6 +16,7 @@ import Link from 'next/link';
 import { useUserContext } from '@/app/context/UserContext'
 import { CLOSE_GAME, FINISH_GAME } from '@/app/api/graphql/operations'
 import { useMutation as useApolloMutation } from '@apollo/client'
+import StartTimer from './StartTimer';
 
 type Props = {
   game: Game & {questions: Pick<Question, 'id' | 'question' | 'answer'>[] };
@@ -102,23 +103,19 @@ const OpenEnded = ({ game }: Props) => {
     }
   }, [handleNext]);
 
-  React.useEffect(() => {
-    if (game.status === 'OPEN') {
-      const timerId = setTimeout(() => {
-        closeGame({variables: {gameId: game.id}})
-        .catch((error) => {
-          console.error("Error closing game", error);
-          toast({
-            title: "Error closing game",
-            
-          })
-        })
-      }, 60000)
-      return () => {
-        clearTimeout(timerId);
-      }
-    }
-  }, [game.status, closeGame, game.id, toast]);
+  const handleCountdownComplete = () => {
+    // Automatically close the game when countdown finishes
+    closeGame({ variables: { gameId: game.id } })
+      .then((data) => {
+        toast({
+          title: 'Game Closed',
+          description: `The game has been closed for bets.`,
+        });
+      })
+      .catch((error) => {
+        console.error('Error during game closure:', error);
+      });
+  };
 
   if (game.status === 'OPEN') {
     return (
@@ -127,7 +124,7 @@ const OpenEnded = ({ game }: Props) => {
           Game will start in 1 minute...
         </div>
         <div className="mt-4">
-          <Timer className="w-6 h-6 animate-spin" />
+          <StartTimer onTimerEnd={handleCountdownComplete} />
         </div>
       </div>
     )
