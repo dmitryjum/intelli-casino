@@ -11,7 +11,7 @@ type Game = {
   id: string
   topic: string
   status: 'OPEN' | 'CLOSED'
-  type: 'MCQ' | 'OPEN_ENDED'
+  type: 'mcq' | 'open_ended'
   openAt: string
   timeStarted: string
   timeEnded: string
@@ -24,16 +24,12 @@ const ActiveGames = (props: Props) => {
   const { data, loading, error } = useQuery<{ activeGames: Game[] }>(GET_ACTIVE_GAMES, {
     fetchPolicy: 'cache-and-network',
   });
-  console.log("data after first fetch:", data);
-  console.log("error:", error);
 
   // Subscribe to activeGamesUpdated using useSubscription
   useSubscription<{ activeGamesUpdated: Game[] }>(ACTIVE_GAMES_UPDATED, {
     onData: ({ client, data }) => {
       if (!data) return;
-      console.log("data after subscription:", data);
-      console.log("client:", client);
-      const updatedGames = data;
+      const updatedGames = data.data?.activeGamesUpdated || [];
 
       // Update the Apollo Client cache with the new active games
       client.writeQuery({
