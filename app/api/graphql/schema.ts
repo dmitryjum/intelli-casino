@@ -7,8 +7,8 @@ const typeDefs = gql`
   }
 
   enum GameType {
-    MCQ
-    OPEN_ENDED
+    mcq
+    open_ended
   }
 
   type Game {
@@ -24,12 +24,13 @@ const typeDefs = gql`
 
   type Query {
     activeGames: [Game!]!
+    game(id: String!): Game!
   }
 
   type Mutation {
-    openGame(gameId: ID!): Game!
-    closeGame(gameId: ID!): Game!
-    finishGame(gameId: ID!): Game!
+    openGame(gameId: String!): Game!
+    closeGame(gameId: String!): Game!
+    finishGame(gameId: String!): Game!
   }
 
   type Subscription {

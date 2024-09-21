@@ -1,9 +1,9 @@
 "use client"
 
 import React from 'react'
-import { useSubscription, useQuery, gql } from '@apollo/client'
+import { useSubscription, useQuery} from '@apollo/client'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import Link from 'next/link'
+// import Link from 'next/link'
 import { GET_ACTIVE_GAMES, ACTIVE_GAMES_UPDATED } from '@/app/api/graphql/operations'
 
 

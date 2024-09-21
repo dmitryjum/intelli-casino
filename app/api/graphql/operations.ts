@@ -17,7 +17,7 @@ export const GET_ACTIVE_GAMES = gql`
 export const ACTIVE_GAMES_UPDATED = gql`
   subscription onActiveGamesUpdated {
     activeGamesUpdated {
-       id
+      id
       type
       status
       topic
@@ -29,7 +29,7 @@ export const ACTIVE_GAMES_UPDATED = gql`
 `;
 
 export const OPEN_GAME = gql`
-  mutation OpenGame($gameId: ID!) {
+  mutation OpenGame($gameId: String!) {
     openGame(gameId: $gameId) {
       id
       topic
@@ -41,7 +41,7 @@ export const OPEN_GAME = gql`
 `;
 
 export const CLOSE_GAME = gql`
-  mutation CloseGame($gameId: ID!) {
+  mutation CloseGame($gameId: String!) {
     closeGame(gameId: $gameId) {
       id
       topic
@@ -53,7 +53,7 @@ export const CLOSE_GAME = gql`
 `;
 
 export const FINISH_GAME = gql`
-  mutation FinishGame($gameId: ID!) {
+  mutation FinishGame($gameId: String!) {
     finishGame(gameId: $gameId) {
       id
       topic

@@ -4,31 +4,48 @@ import { GraphQLWsLink } from '@apollo/client/link/subscriptions'
 import { createClient } from 'graphql-ws'
 
 const httpLink = new HttpLink({
-  uri: '/api/graphql',
+  uri: process.env.NEXT_PUBLIC_GRAPHQL_HTTP_URI,
   credentials: 'same-origin',
 })
 
-const wsLink = new GraphQLWsLink(createClient({
-  url: 'ws://localhost:3000/subscriptions',
-}))
+// WebSocket link for subscriptions
+const wsLink = typeof window !== 'undefined' ? new GraphQLWsLink(
+  createClient({
+    url: process.env.NEXT_PUBLIC_GRAPHQL_WS_URI || 'ws://localhost:4000/graphql'
+  })
+) : null;
 
-// Using the ability to split links, you can send data to each link
-// depending on what kind of operation is being sent
-const splitLink = split(
+// Using the split function to divide traffic between HTTP and WebSocket
+const splitLink = typeof window !== 'undefined' && wsLink != null ? split(
   ({ query }) => {
-    const definition = getMainDefinition(query)
+    const definition = getMainDefinition(query);
     return (
       definition.kind === 'OperationDefinition' &&
       definition.operation === 'subscription'
-    )
+    );
   },
   wsLink,
   httpLink,
-)
+) : httpLink;
 
 const client = new ApolloClient({
   link: splitLink,
-  cache: new InMemoryCache(),
+  cache: new InMemoryCache({
+    typePolicies: {
+      Query: {
+        fields: {
+          activeGames: {
+            merge(existing = [], incoming: any[]) {
+              return incoming;
+            },
+          },
+        },
+      },
+      Game: {
+        keyFields: ['id'],
+      },
+    },
+  }),
 });
 
 export { client, ApolloProvider }

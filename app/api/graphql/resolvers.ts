@@ -1,10 +1,12 @@
-import { prisma } from '@/lib/db'
+import { PrismaClient } from '@prisma/client';
 import { PubSub } from 'graphql-subscriptions'
+import { IResolvers } from '@graphql-tools/utils';
 
 const pubsub = new PubSub();
+const prisma = new PrismaClient();
 const ACTIVE_GAMES_UPDATED = 'ACTIVE_GAMES_UPDATED';
 
-const resolvers = {
+const resolvers: IResolvers = {
   Query: {
     activeGames: async () => {
       return await prisma.game.findMany({
@@ -17,6 +19,9 @@ const resolvers = {
           openAt: 'desc',
         },
       });
+    },
+    game: async (_: any, { id }: { id: string }) => {
+      return prisma.game.findUnique({ where: { id } });
     },
   },
   Mutation: {
