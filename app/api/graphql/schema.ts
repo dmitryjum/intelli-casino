@@ -19,7 +19,7 @@ const typeDefs = gql`
     type: GameType
     userId: String!
     timeStarted: String!
-    timeEnded: String!
+    timeEnded: String
   }
 
   type Query {

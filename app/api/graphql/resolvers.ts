@@ -9,7 +9,7 @@ const ACTIVE_GAMES_UPDATED = 'ACTIVE_GAMES_UPDATED';
 const resolvers: IResolvers = {
   Query: {
     activeGames: async () => {
-      return await prisma.game.findMany({
+      const activeGames = await prisma.game.findMany({
         where: {
           status: {
             in: ['OPEN', 'CLOSED'],
@@ -19,6 +19,8 @@ const resolvers: IResolvers = {
           openAt: 'desc',
         },
       });
+      console.log("activeGames:", activeGames);
+      return activeGames;
     },
     game: async (_: any, { id }: { id: string }) => {
       return prisma.game.findUnique({ where: { id } });
