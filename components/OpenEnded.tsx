@@ -1,6 +1,6 @@
 'use client';
 import { cn, formatTimeDelta } from '@/lib/utils';
-import { Game, Question } from '@prisma/client'
+import { $Enums, Game, Question } from '@prisma/client'
 import { differenceInSeconds } from 'date-fns';
 import { BarChart, ChevronRight, Loader2, Timer } from 'lucide-react';
 import React from 'react'
@@ -28,6 +28,7 @@ const OpenEnded = ({ game }: Props) => {
   const [hasEnded, setHasEnded] = React.useState<boolean>(false);
   const {toast} = useToast();
   const { userRole } = useUserContext();
+  const [gameStatus, setGameStatus] = React.useState<$Enums.GameStatus>(game.status);
   const [now, setNow] = React.useState<Date | string>("");
 
   const currentQuestion = React.useMemo(() => {
@@ -106,7 +107,7 @@ const OpenEnded = ({ game }: Props) => {
   const handleCountdownComplete = () => {
     // Automatically close the game when countdown finishes
     closeGame({ variables: { gameId: game.id } })
-      .then((data) => {
+      .then(() => {
         toast({
           title: 'Game Closed',
           description: `The game has been closed for bets.`,
@@ -115,9 +116,10 @@ const OpenEnded = ({ game }: Props) => {
       .catch((error) => {
         console.error('Error during game closure:', error);
       });
+      setGameStatus('CLOSED');
   };
 
-  if (game.status === 'OPEN') {
+  if (gameStatus === 'OPEN') {
     return (
       <div className="absolute flex flex-col justify-center top-1/2 left-1/2 -translate-x-1/2 top-1/2 left-1/2">
         <div className="px-4 mt-2 font-semibold text-white bg-blue-500 rounded-md whitespace-nowrap">
