@@ -23,6 +23,9 @@ import { useMutation } from '@tanstack/react-query'
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import LoadingQuestions from './LoadingQuestions';
+import { useMutation as useApolloMutation } from '@apollo/client'
+import { OPEN_GAME } from '@/app/api/graphql/operations'
+import { useToast } from '@/components/ui/use-toast';
 
 type Props = {
   topicParam: string
@@ -31,13 +34,30 @@ type Props = {
 type Input = z.infer<typeof quizCreationSchema>
 
 const QuizCreation = ({ topicParam }: Props) => {
+  const { toast } = useToast();
   const router = useRouter();
   const [showLoader, setShowLoader] = React.useState(false);
   const [finished, setFinished] = React.useState(false);
+  const [openGame] = useApolloMutation(OPEN_GAME, {
+    onCompleted: (data) => {
+      toast({
+        title: 'Game Opened',
+        description: `The game "${data.openGame.topic}" has been opened for bets.`,
+      })
+    },
+    onError: (error) => {
+      toast({
+        title: 'Error',
+        description: error.message,
+        variant: 'destructive'
+      })
+    }
+  });
+
   const {mutate: getQuestions, isLoading} = useMutation({
     mutationFn: async ({amount, topic, type}: Input) => {
 
-      const response = await axios.post('/api/game', {
+      const response = await axios.post('/api/game/create', {
         amount,
         topic,
         type,
@@ -45,6 +65,7 @@ const QuizCreation = ({ topicParam }: Props) => {
       return response.data
     }
   })
+
   const form = useForm<Input>({
     resolver: zodResolver(quizCreationSchema),
     defaultValues: {
@@ -63,6 +84,7 @@ const QuizCreation = ({ topicParam }: Props) => {
     }, {
       onSuccess: ({gameId}) => {
         setFinished(true);
+        openGame({variables: {gameId}});
         setTimeout(() => {
           if (form.getValues('type') === 'open_ended') {
             router.push(`/play/open-ended/${gameId}`)

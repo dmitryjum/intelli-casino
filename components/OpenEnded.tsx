@@ -1,6 +1,6 @@
 'use client';
 import { cn, formatTimeDelta } from '@/lib/utils';
-import { Game, Question } from '@prisma/client'
+import { $Enums, Game, Question } from '@prisma/client'
 import { differenceInSeconds } from 'date-fns';
 import { BarChart, ChevronRight, Loader2, Timer } from 'lucide-react';
 import React from 'react'
@@ -14,6 +14,9 @@ import axios from 'axios';
 import BlankAnswerInput from './BlankAnswerInput';
 import Link from 'next/link';
 import { useUserContext } from '@/app/context/UserContext'
+import { CLOSE_GAME, FINISH_GAME, GAME_UPDATED } from '@/app/api/graphql/operations'
+import { useMutation as useApolloMutation, useSubscription } from '@apollo/client'
+import StartTimer from './StartTimer';
 
 type Props = {
   game: Game & {questions: Pick<Question, 'id' | 'question' | 'answer'>[] };
@@ -25,10 +28,25 @@ const OpenEnded = ({ game }: Props) => {
   const [hasEnded, setHasEnded] = React.useState<boolean>(false);
   const {toast} = useToast();
   const { userRole } = useUserContext();
+  const [gameStatus, setGameStatus] = React.useState<$Enums.GameStatus>(game.status);
   const [now, setNow] = React.useState<Date | string>("");
+
   const currentQuestion = React.useMemo(() => {
     return game.questions[questionIndex]
   }, [questionIndex, game.questions]);
+
+  const [closeGame] = useApolloMutation(CLOSE_GAME);
+  const [finishGame] = useApolloMutation(FINISH_GAME);
+
+  useSubscription<{ gameUpdated: Game }>(GAME_UPDATED, {
+    variables: { gameId: game.id },
+    onData: ({ data }) => {
+      const updatedGame = data.data?.gameUpdated;
+      if (updatedGame) {
+        setGameStatus(updatedGame.status);
+      }
+    },
+  });
 
   React.useEffect(() => {
     setNow(new Date());
@@ -67,12 +85,21 @@ const OpenEnded = ({ game }: Props) => {
         })
         if (questionIndex === game.questions.length -1) {
           setHasEnded(true);
+          finishGame({variables: {gameId: game.id, timeEnded: now}})
+          .catch((error) => {
+            console.error("Error finishing game", error);
+            toast({
+              title: "Error finishing game",
+              description: "There was an error finishing the game",
+              variant: "destructive",
+            })
+          })
           return;
         }
         setQuestionIndex((prev) => prev + 1);
       }
     })
-  }, [checkAnswer, toast, isChecking, questionIndex, game.questions.length]);
+  }, [checkAnswer, toast, isChecking, questionIndex, game.questions.length, finishGame]);
 
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -86,6 +113,35 @@ const OpenEnded = ({ game }: Props) => {
       document.removeEventListener("keydown", handleKeyDown);
     }
   }, [handleNext]);
+
+  const handleCountdownComplete = React.useCallback(() => {
+    // Automatically close the game when countdown finishes
+    closeGame({ variables: { gameId: game.id } })
+      .then(() => {
+        toast({
+          title: 'Game Closed',
+          description: `The game has been closed for bets.`,
+        });
+      })
+      .catch((error) => {
+        console.error('Error during game closure:', error);
+      });
+  }, [closeGame, toast, game.id]);
+
+  if (gameStatus === 'OPEN') {
+    return (
+      <div className="absolute flex flex-col justify-center top-1/2 left-1/2 -translate-x-1/2 top-1/2 left-1/2">
+        <div className="px-4 mt-2 font-semibold text-white bg-blue-500 rounded-md whitespace-nowrap">
+          Game will start in 1 minute...
+        </div>
+        <div className="mt-4">
+          <StartTimer timeStarted={new Date(game.timeStarted)}
+            duration={60} // Duration in seconds
+            onTimerEnd={handleCountdownComplete} />
+        </div>
+      </div>
+    )
+  }
 
   if (hasEnded) {
     return (

@@ -6,12 +6,17 @@
     "dev": "next dev",
     "build": "npx prisma generate && next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "start:server": "ts-node -r tsconfig-paths/register --project tsconfig.server.json server/index.ts"
   },
   "dependencies": {
+    "@apollo/client": "^3.11.8",
+    "@apollo/server": "^4.11.0",
+    "@as-integrations/next": "^3.1.0",
+    "@graphql-tools/schema": "^10.0.6",
     "@hookform/resolvers": "^3.9.0",
     "@next-auth/prisma-adapter": "^1.0.7",
-    "@prisma/client": "^5.18.0",
+    "@prisma/client": "^5.20.0",
     "@radix-ui/react-avatar": "^1.1.0",
     "@radix-ui/react-dropdown-menu": "^2.1.1",
     "@radix-ui/react-icons": "^1.3.0",
@@ -24,7 +29,13 @@
     "axios": "^1.7.3",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
+    "cors": "^2.8.5",
     "date-fns": "^3.6.0",
+    "express": "^4.21.0",
+    "graphql": "^16.9.0",
+    "graphql-subscriptions": "^2.0.0",
+    "graphql-tag": "^2.12.6",
+    "graphql-ws": "^5.16.0",
     "keyword-extractor": "^0.0.28",
     "lucide-react": "^0.416.0",
     "next": "14.2.5",
@@ -38,18 +49,24 @@
     "string-similarity": "^4.0.4",
     "tailwind-merge": "^2.4.0",
     "tailwindcss-animate": "^1.0.7",
+    "ws": "^8.18.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "@types/string-similarity": "^4.0.2",
+    "@types/ws": "^8.5.12",
     "eslint": "^8",
     "eslint-config-next": "14.2.5",
     "postcss": "^8",
-    "prisma": "^5.18.0",
+    "prisma": "^5.20.0",
     "tailwindcss": "^3.4.1",
-    "typescript": "^5"
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.6.2"
   }
 }

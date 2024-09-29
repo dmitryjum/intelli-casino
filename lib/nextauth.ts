@@ -2,12 +2,13 @@ import { DefaultSession, NextAuthOptions, getServerSession } from 'next-auth';
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
 import { prisma } from './db';
 import GoogleProvider from 'next-auth/providers/google'
+import { Role } from '@prisma/client'
 
 declare module 'next-auth' {
   interface Session extends DefaultSession {
     user: {
       id: string;
-      role?: string;
+      role?: Role;
     } & DefaultSession['user']
   }
 }
@@ -32,7 +33,7 @@ export const authOptions: NextAuthOptions = {
       })
       if(db_user) {
         token.id = db_user.id
-        token.role = db_user.role
+        token.role = db_user.role as Role
       }
       return token
     },
@@ -54,7 +55,11 @@ export const authOptions: NextAuthOptions = {
       clientId: process.env.GOOGLE_CLIENT_ID as string,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
       profile(profile) {
-        return { role: profile.role ?? "PLAYER", ...profile }
+        return {
+          id: profile.sub,
+          role: profile.role ?? Role.PLAYER,
+          ...profile,
+        };
       },
     })
   ]
