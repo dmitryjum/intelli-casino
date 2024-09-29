@@ -14,9 +14,9 @@ export const GET_ACTIVE_GAMES = gql`
   }
 `;
 
-export const ACTIVE_GAMES_UPDATED = gql`
-  subscription onActiveGamesUpdated {
-    activeGamesUpdated {
+export const GAME_UPDATED = gql`
+  subscription onGameUpdated($gameId: String) {
+    gameUpdated(gameId: $gameId) {
       id
       type
       status
@@ -27,7 +27,6 @@ export const ACTIVE_GAMES_UPDATED = gql`
     }
   }
 `;
-
 export const OPEN_GAME = gql`
   mutation OpenGame($gameId: String!) {
     openGame(gameId: $gameId) {

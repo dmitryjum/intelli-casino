@@ -14,8 +14,8 @@ import axios from 'axios';
 import BlankAnswerInput from './BlankAnswerInput';
 import Link from 'next/link';
 import { useUserContext } from '@/app/context/UserContext'
-import { CLOSE_GAME, FINISH_GAME } from '@/app/api/graphql/operations'
-import { useMutation as useApolloMutation } from '@apollo/client'
+import { CLOSE_GAME, FINISH_GAME, GAME_UPDATED } from '@/app/api/graphql/operations'
+import { useMutation as useApolloMutation, useSubscription } from '@apollo/client'
 import StartTimer from './StartTimer';
 
 type Props = {
@@ -37,6 +37,16 @@ const OpenEnded = ({ game }: Props) => {
 
   const [closeGame] = useApolloMutation(CLOSE_GAME);
   const [finishGame] = useApolloMutation(FINISH_GAME);
+
+  useSubscription<{ gameUpdated: Game }>(GAME_UPDATED, {
+    variables: { gameId: game.id },
+    onData: ({ data }) => {
+      const updatedGame = data.data?.gameUpdated;
+      if (updatedGame) {
+        setGameStatus(updatedGame.status);
+      }
+    },
+  });
 
   React.useEffect(() => {
     setNow(new Date());
@@ -116,7 +126,6 @@ const OpenEnded = ({ game }: Props) => {
       .catch((error) => {
         console.error('Error during game closure:', error);
       });
-      setGameStatus('CLOSED');
   };
 
   if (gameStatus === 'OPEN') {
@@ -126,7 +135,9 @@ const OpenEnded = ({ game }: Props) => {
           Game will start in 1 minute...
         </div>
         <div className="mt-4">
-          <StartTimer onTimerEnd={handleCountdownComplete} />
+          <StartTimer timeStarted={new Date(game.timeStarted)}
+            duration={60} // Duration in seconds
+            onTimerEnd={handleCountdownComplete} />
         </div>
       </div>
     )
@@ -136,7 +147,7 @@ const OpenEnded = ({ game }: Props) => {
     return (
       <div className="absolute flex flex-col justify-center top-1/2 left-1/2 -translate-x-1/2 top-1/2 left-1/2">
         <div className="px-4 mt-2 font-semibold text-white bg-green-500 rounded-md whitespace-nowrap">
-          You completed in {formatTimeDelta(differenceInSeconds(now, game.timeStarted))}
+          You completed in {formatTimeDelta(differenceInSeconds(game.timeEnded, game.timeStarted))}
         </div>
         <Link href={`/statistics/${game.id}`} className={cn(buttonVariants(), "mt-2")}>
           View Statistics

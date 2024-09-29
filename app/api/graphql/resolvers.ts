@@ -1,10 +1,10 @@
 import { PrismaClient } from '@prisma/client';
-import { PubSub } from 'graphql-subscriptions'
+import { PubSub, withFilter } from 'graphql-subscriptions'
 import { IResolvers } from '@graphql-tools/utils';
 
 const pubsub = new PubSub();
 const prisma = new PrismaClient();
-const ACTIVE_GAMES_UPDATED = 'ACTIVE_GAMES_UPDATED';
+const GAME_UPDATED = 'GAME_UPDATED';
 
 const resolvers: IResolvers = {
   Query: {
@@ -36,20 +36,8 @@ const resolvers: IResolvers = {
         },
       });
 
-      // fetch updated active games
-      const activeGames = await prisma.game.findMany({
-        where: {
-          status: {
-            in: ['OPEN', 'CLOSED'],
-          },
-        },
-        orderBy: {
-          openAt: 'desc',
-        },
-      });
-
       // publish to pubsub
-      pubsub.publish(ACTIVE_GAMES_UPDATED, { activeGamesUpdated: activeGames });
+      pubsub.publish(GAME_UPDATED, { gameUpdated: updatedGame });
 
       return updatedGame;
     },
@@ -62,20 +50,9 @@ const resolvers: IResolvers = {
         },
       });
 
-      // fetch updated active games
-      const activeGames = await prisma.game.findMany({
-        where: {
-          status: {
-            in: ['OPEN', 'CLOSED'],
-          },
-        },
-        orderBy: {
-          openAt: 'desc',
-        },
-      });
 
       // publish to pubsub
-      pubsub.publish(ACTIVE_GAMES_UPDATED, { activeGamesUpdated: activeGames });
+      pubsub.publish(GAME_UPDATED, { gameUpdated: updatedGame });
 
       return updatedGame;
     },
@@ -85,30 +62,27 @@ const resolvers: IResolvers = {
         data: {
           status: 'FINISHED',
           openAt: null,
+          timeEnded: new Date()
         },
       })
 
-      // fetch updated active games (exclude FINISHED)
-      const activeGames = await prisma.game.findMany({
-        where: {
-          status: {
-            in: ['OPEN', 'CLOSED'],
-          },
-        },
-        orderBy: {
-          openAt: 'desc',
-        },
-      });
-
       // publish to pubsub
-      pubsub.publish(ACTIVE_GAMES_UPDATED, { activeGamesUpdated: activeGames });
+      pubsub.publish(GAME_UPDATED, { gameUpdated: updatedGame });
 
       return updatedGame;
     },
   },
   Subscription: {
-    activeGamesUpdated: {
-      subscribe: () => pubsub.asyncIterator(ACTIVE_GAMES_UPDATED),
+    gameUpdated: {
+      subscribe: withFilter(
+        () => pubsub.asyncIterator(GAME_UPDATED),
+        (payload, variables) => {
+          if (variables.gameId) {
+            return payload.gameUpdated.id === variables.gameId;
+          }
+          return true; // If no gameId provided, send all updates
+        }
+      ),
     },
   },
 }

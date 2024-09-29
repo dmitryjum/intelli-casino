@@ -4,7 +4,7 @@ import React from 'react'
 import { useSubscription, useQuery} from '@apollo/client'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 // import Link from 'next/link'
-import { GET_ACTIVE_GAMES, ACTIVE_GAMES_UPDATED } from '@/app/api/graphql/operations'
+import { GET_ACTIVE_GAMES, GAME_UPDATED } from '@/app/api/graphql/operations'
 
 
 type Game = {
@@ -26,16 +26,53 @@ const ActiveGames = (props: Props) => {
   });
 
   // Subscribe to activeGamesUpdated using useSubscription
-  useSubscription<{ activeGamesUpdated: Game[] }>(ACTIVE_GAMES_UPDATED, {
+  useSubscription<{ gameUpdated: Game }>(GAME_UPDATED, {
+    variables: {},
     onData: ({ client, data }) => {
       if (!data) return;
-      const updatedGames = data.data?.activeGamesUpdated || [];
+      const updatedGame = data.data?.gameUpdated;
+      if (!updatedGame) return;
 
-      // Update the Apollo Client cache with the new active games
-      client.writeQuery({
+      const existingData = client.readQuery<{ activeGames: Game[] }>({
         query: GET_ACTIVE_GAMES,
-        data: { activeGames: updatedGames },
       });
+
+      if (!existingData) return;
+
+      const { activeGames } = existingData;
+      const gameIndex = activeGames.findIndex(game => game.id === updatedGame.id);
+
+      if (updatedGame.status === 'FINISHED') {
+        // Remove the game if it's finished
+        if (gameIndex > -1) {
+          client.writeQuery({
+            query: GET_ACTIVE_GAMES,
+            data: {
+              activeGames: activeGames.filter(game => game.id !== updatedGame.id),
+            },
+          });
+        }
+      } else {
+        if (gameIndex > -1) {
+          // Update existing game
+          const updatedActiveGames = [...activeGames];
+          updatedActiveGames[gameIndex] = updatedGame;
+          client.writeQuery({
+            query: GET_ACTIVE_GAMES,
+            data: {
+              activeGames: updatedActiveGames,
+            },
+          });
+        } else {
+          // add the game if it becomes active
+          client.writeQuery({
+            query: GET_ACTIVE_GAMES,
+            data: {
+              activeGames: [...activeGames, updatedGame],
+            },
+          });
+        }
+      }
     },
   });
   

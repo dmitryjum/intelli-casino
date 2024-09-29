@@ -34,7 +34,7 @@ const typeDefs = gql`
   }
 
   type Subscription {
-    activeGamesUpdated: [Game!]!
+    gameUpdated(gameId: String): Game!
   }
 `
 

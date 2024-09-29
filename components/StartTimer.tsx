@@ -2,24 +2,33 @@
 
 import { useState, useEffect } from 'react'
 import { Timer } from 'lucide-react'
+import { differenceInSeconds } from 'date-fns';
 
 interface StartTimerProps {
+  timeStarted: Date;
+  duration: number;
   onTimerEnd: () => void
 }
 
-export default function StartTimer({ onTimerEnd }: StartTimerProps) {
-  const [timeLeft, setTimeLeft] = useState(60)
+export default function StartTimer({ timeStarted, duration, onTimerEnd }: StartTimerProps) {
+  const calculateTimeLeft = () => {
+    const now = new Date();
+    const timeElapsed = differenceInSeconds(now, timeStarted);
+    return Math.max(0, duration - timeElapsed);
+  }
+
+  const [timeLeft, setTimeLeft] = useState<number>(calculateTimeLeft());
 
   useEffect(() => {
     const intervalId = setInterval(() => {
-      setTimeLeft(prevTime => prevTime - 1);
+      setTimeLeft(calculateTimeLeft());
     }, 1000)
     if (timeLeft === 0) {
       clearInterval(intervalId);
       onTimerEnd();
     }
     return () => clearInterval(intervalId) // Clear interval on unmount
-  }, [timeLeft])
+  }, [timeLeft, duration, onTimerEnd])
 
   const minutes = Math.floor(timeLeft / 60)
   const seconds = timeLeft % 60
