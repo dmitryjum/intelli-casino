@@ -20,18 +20,31 @@ export default function StartTimer({ timeStarted, duration, onTimerEnd }: StartT
   const [timeLeft, setTimeLeft] = useState<number>(calculateTimeLeft());
 
   useEffect(() => {
-    const intervalId = setInterval(() => {
-      setTimeLeft(calculateTimeLeft());
-    }, 1000)
-    if (timeLeft === 0) {
-      clearInterval(intervalId);
-      onTimerEnd();
-    }
-    return () => clearInterval(intervalId) // Clear interval on unmount
-  }, [timeLeft, duration, onTimerEnd])
+    const initialTimeLeft = calculateTimeLeft();
+    setTimeLeft(initialTimeLeft);
 
-  const minutes = Math.floor(timeLeft / 60)
-  const seconds = timeLeft % 60
+    if (initialTimeLeft <= 0) {
+      onTimerEnd();
+      return; // Exit early if the timer has already ended
+    }
+
+    const intervalId: NodeJS.Timeout = setInterval(() => {
+      setTimeLeft(prevTimeLeft => {
+        const newTimeLeft = calculateTimeLeft();
+        if(newTimeLeft <= 0) {
+          clearInterval(intervalId);
+          debugger
+          onTimerEnd()
+        }
+        return newTimeLeft;
+      });
+    }, 1000);
+    
+    return () => clearInterval(intervalId) // Clear interval on unmount
+  }, [timeStarted, duration, onTimerEnd])
+
+  const minutes: number = Math.floor(timeLeft / 60)
+  const seconds: number = timeLeft % 60
 
   return (
     <div className="flex items-center justify-center space-x-2 bg-gray-100 rounded-lg p-4 w-48">

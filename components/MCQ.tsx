@@ -14,8 +14,8 @@ import { useToast } from './ui/use-toast'
 import Link from 'next/link'
 import { cn, formatTimeDelta } from '@/lib/utils'
 import { useUserContext } from '@/app/context/UserContext'
-import { CLOSE_GAME, FINISH_GAME } from '@/app/api/graphql/operations'
-import { useMutation as useApolloMutation } from '@apollo/client'
+import { CLOSE_GAME, FINISH_GAME, GAME_UPDATED } from '@/app/api/graphql/operations'
+import { useMutation as useApolloMutation, useSubscription } from '@apollo/client'
 
 type Props = {
   game: Game & {questions: Pick<Question, 'id' | 'options' | 'question'>[]}
@@ -30,8 +30,19 @@ const MCQ = ({game}: Props) => {
   const {toast} = useToast();
   const { userRole } = useUserContext();
   const [now, setNow] = React.useState<Date>(new Date());
+  const [gameStatus, setGameStatus] = React.useState<$Enums.GameStatus>(game.status);
   const [closeGame] = useApolloMutation(CLOSE_GAME);
   const [finishGame] = useApolloMutation(FINISH_GAME);
+
+  useSubscription<{ gameUpdated: Game }>(GAME_UPDATED, {
+    variables: { gameId: game.id },
+    onData: ({ data }) => {
+      const updatedGame = data.data?.gameUpdated;
+      if (updatedGame) {
+        setGameStatus(updatedGame.status);
+      }
+    },
+  });
 
   React.useEffect(() => {
     const interval = setInterval(() => {
@@ -76,7 +87,7 @@ const MCQ = ({game}: Props) => {
         }
         if (questionIndex === game.questions.length -1) {
           setHasEnded(true);
-          finishGame({variables: {gameId: game.id}})
+          finishGame({variables: {gameId: game.id, timeEnded: now}})
           .catch((error) => {
             console.error("Error finishing game", error);
             toast({
@@ -117,9 +128,14 @@ const MCQ = ({game}: Props) => {
       // Start 1-minute timer
       const timerId = setTimeout(() => {
         // Mutate game status to CLOSED
-        closeGame({
-          variables: { gameId: game.id },
-        }).catch((error) => {
+        closeGame({ variables: { gameId: game.id }})
+        .then(() => {
+          toast({
+            title: 'Game Closed',
+            description: `The game has been closed for bets.`,
+          });
+        })
+        .catch((error) => {
           console.error("Error closing game:", error);
           toast({
             title: "Error",
@@ -140,15 +156,31 @@ const MCQ = ({game}: Props) => {
     return JSON.parse(currentQuestion.options as string) as string[];
   }, [currentQuestion]);
 
+  const handleCountdownComplete = React.useCallback(() => {
+    // Automatically close the game when countdown finishes
+    closeGame({ variables: { gameId: game.id } })
+      .then(() => {
+        toast({
+          title: 'Game Closed',
+          description: `The game has been closed for bets.`,
+        });
+      })
+      .catch((error) => {
+        console.error('Error during game closure:', error);
+      });
+  }, [closeGame, toast, game.id]);
+
   if (game.status === 'OPEN') {
     return (
       <div className="absolute flex flex-col justify-center top-1/2 left-1/2 -translate-x-1/2 top-1/2 left-1/2">
         <div className="px-4 mt-2 font-semibold text-white bg-blue-500 rounded-md whitespace-nowrap">
           Game will start in 1 minute...
         </div>
-        <div className="mt-4">
-          <Timer className="w-6 h-6 animate-spin" />
-        </div>
+         <div className="mt-4">
+            <StartTimer timeStarted={new Date(game.timeStarted)}
+              duration={60} // Duration in seconds
+              onTimerEnd={handleCountdownComplete} />
+          </div>
       </div>
     )
   }

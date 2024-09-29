@@ -85,7 +85,7 @@ const OpenEnded = ({ game }: Props) => {
         })
         if (questionIndex === game.questions.length -1) {
           setHasEnded(true);
-          finishGame({variables: {gameId: game.id}})
+          finishGame({variables: {gameId: game.id, timeEnded: now}})
           .catch((error) => {
             console.error("Error finishing game", error);
             toast({
@@ -114,7 +114,7 @@ const OpenEnded = ({ game }: Props) => {
     }
   }, [handleNext]);
 
-  const handleCountdownComplete = () => {
+  const handleCountdownComplete = React.useCallback(() => {
     // Automatically close the game when countdown finishes
     closeGame({ variables: { gameId: game.id } })
       .then(() => {
@@ -126,7 +126,7 @@ const OpenEnded = ({ game }: Props) => {
       .catch((error) => {
         console.error('Error during game closure:', error);
       });
-  };
+  }, [closeGame, toast, game.id]);
 
   if (gameStatus === 'OPEN') {
     return (
@@ -147,7 +147,7 @@ const OpenEnded = ({ game }: Props) => {
     return (
       <div className="absolute flex flex-col justify-center top-1/2 left-1/2 -translate-x-1/2 top-1/2 left-1/2">
         <div className="px-4 mt-2 font-semibold text-white bg-green-500 rounded-md whitespace-nowrap">
-          You completed in {formatTimeDelta(differenceInSeconds(game.timeEnded, game.timeStarted))}
+          You completed in {formatTimeDelta(differenceInSeconds(now, game.timeStarted))}
         </div>
         <Link href={`/statistics/${game.id}`} className={cn(buttonVariants(), "mt-2")}>
           View Statistics
