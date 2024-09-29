@@ -1,21 +1,10 @@
 "use client"
-
+import { Game } from '@prisma/client'
 import React from 'react'
 import { useSubscription, useQuery} from '@apollo/client'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-// import Link from 'next/link'
 import { GET_ACTIVE_GAMES, GAME_UPDATED } from '@/app/api/graphql/operations'
-
-
-type Game = {
-  id: string
-  topic: string
-  status: 'OPEN' | 'CLOSED'
-  type: 'mcq' | 'open_ended'
-  openAt: string
-  timeStarted: string
-  timeEnded: string
-}
+import Link from 'next/link'
 
 type Props = {}
 
@@ -24,6 +13,7 @@ const ActiveGames = (props: Props) => {
   const { data, loading, error } = useQuery<{ activeGames: Game[] }>(GET_ACTIVE_GAMES, {
     fetchPolicy: 'cache-and-network',
   });
+  const activeGames: Game[] = data?.activeGames || []
 
   // Subscribe to activeGamesUpdated using useSubscription
   useSubscription<{ gameUpdated: Game }>(GAME_UPDATED, {
@@ -32,18 +22,19 @@ const ActiveGames = (props: Props) => {
       if (!data) return;
       const updatedGame = data.data?.gameUpdated;
       if (!updatedGame) return;
-
-      const existingData = client.readQuery<{ activeGames: Game[] }>({
-        query: GET_ACTIVE_GAMES,
-      });
-
-      if (!existingData) return;
-
-      const { activeGames } = existingData;
       const gameIndex = activeGames.findIndex(game => game.id === updatedGame.id);
 
-      if (updatedGame.status === 'FINISHED') {
-        // Remove the game if it's finished
+      if (gameIndex > -1 && updatedGame.status !== 'FINISHED') {
+        const updatedActiveGames = [...activeGames];
+        updatedActiveGames[gameIndex] = updatedGame;
+        
+        client.writeQuery({
+          query: GET_ACTIVE_GAMES,
+          data: {
+            activeGames: updatedActiveGames,
+          },
+        });
+      } else if (gameIndex > -1) {
         if (gameIndex > -1) {
           client.writeQuery({
             query: GET_ACTIVE_GAMES,
@@ -53,32 +44,18 @@ const ActiveGames = (props: Props) => {
           });
         }
       } else {
-        if (gameIndex > -1) {
-          // Update existing game
-          const updatedActiveGames = [...activeGames];
-          updatedActiveGames[gameIndex] = updatedGame;
-          client.writeQuery({
-            query: GET_ACTIVE_GAMES,
-            data: {
-              activeGames: updatedActiveGames,
-            },
-          });
-        } else {
-          // add the game if it becomes active
-          client.writeQuery({
-            query: GET_ACTIVE_GAMES,
-            data: {
-              activeGames: [...activeGames, updatedGame],
-            },
-          });
-        }
+        client.writeQuery({
+          query: GET_ACTIVE_GAMES,
+          data: {
+            activeGames: [...activeGames, updatedGame],
+          },
+        });
       }
     },
   });
   
   if (loading) return <div>Loading...</div>
   if (error) return <div>Error: {error.message}</div>
-  const activeGames = data?.activeGames || []
 
   if (activeGames.length === 0) {
     return (
@@ -113,9 +90,9 @@ const ActiveGames = (props: Props) => {
             {activeGames.map((game) => (
               <tr key={game.id} className="hover:bg-gray-100">
                 <td className="border px-4 py-2">
-                  {/* <Link href={`/${game.type}/${game.id}`}> */}
-                    <a className="text-blue-500 hover:underline">{game.topic}</a>
-                  {/* </Link> */}
+                  <Link href={`/play/${game.gameType.replace(/_/g, '-')}/${game.id}`} className="text-blue-500 hover:underline">
+                    {game.topic}
+                  </Link>
                 </td>
                 <td className="border px-4 py-2">
                   <span

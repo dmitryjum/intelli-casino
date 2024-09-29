@@ -4,9 +4,10 @@ export const GET_ACTIVE_GAMES = gql`
   query GetActiveGames {
     activeGames {
       id
-      type
       status
       topic
+      gameType
+      openAt
       userId
       timeStarted
       timeEnded
@@ -18,10 +19,11 @@ export const GAME_UPDATED = gql`
   subscription onGameUpdated($gameId: String) {
     gameUpdated(gameId: $gameId) {
       id
-      type
       status
       topic
       userId
+      openAt
+      gameType
       timeStarted
       timeEnded
     }
@@ -34,7 +36,7 @@ export const OPEN_GAME = gql`
       topic
       status
       openAt
-      type
+      gameType
     }
   }
 `;
@@ -46,7 +48,7 @@ export const CLOSE_GAME = gql`
       topic
       status
       openAt
-      type
+      gameType
     }
   }
 `;
@@ -58,7 +60,7 @@ export const FINISH_GAME = gql`
       topic
       status
       openAt
-      type
+      gameType
     }
   }
 `; 

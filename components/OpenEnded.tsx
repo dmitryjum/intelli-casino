@@ -18,6 +18,8 @@ import { CLOSE_GAME, FINISH_GAME, GAME_UPDATED } from '@/app/api/graphql/operati
 import { useMutation as useApolloMutation, useSubscription } from '@apollo/client'
 import StartTimer from './StartTimer';
 
+const OPEN_DURATION = 60
+
 type Props = {
   game: Game & {questions: Pick<Question, 'id' | 'question' | 'answer'>[] };
 };
@@ -136,7 +138,7 @@ const OpenEnded = ({ game }: Props) => {
         </div>
         <div className="mt-4">
           <StartTimer timeStarted={new Date(game.timeStarted)}
-            duration={60} // Duration in seconds
+            duration={OPEN_DURATION} // Duration in seconds
             onTimerEnd={handleCountdownComplete} />
         </div>
       </div>

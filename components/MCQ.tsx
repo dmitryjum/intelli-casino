@@ -1,5 +1,5 @@
 'use client'
-import { Game, Question } from '@prisma/client'
+import { $Enums, Game, Question } from '@prisma/client'
 import { differenceInSeconds } from 'date-fns'
 import { BarChart, ChevronRight, Loader2, Timer } from 'lucide-react'
 import React from 'react'
@@ -18,6 +18,8 @@ import { CLOSE_GAME, FINISH_GAME, GAME_UPDATED } from '@/app/api/graphql/operati
 import { useMutation as useApolloMutation, useSubscription } from '@apollo/client'
 import StartTimer from './StartTimer';
 
+const OPEN_DURATION = 60
+
 type Props = {
   game: Game & {questions: Pick<Question, 'id' | 'options' | 'question'>[]}
 }
@@ -34,6 +36,10 @@ const MCQ = ({game}: Props) => {
   const [gameStatus, setGameStatus] = React.useState<$Enums.GameStatus>(game.status);
   const [closeGame] = useApolloMutation(CLOSE_GAME);
   const [finishGame] = useApolloMutation(FINISH_GAME);
+
+  const currentQuestion = React.useMemo(() => {
+    return game.questions[questionIndex]
+  }, [questionIndex, game.questions]);
 
   useSubscription<{ gameUpdated: Game }>(GAME_UPDATED, {
     variables: { gameId: game.id },
@@ -54,9 +60,6 @@ const MCQ = ({game}: Props) => {
     return () => { clearInterval(interval) }
   }, [hasEnded])
 
-  const currentQuestion = React.useMemo(() => {
-    return game.questions[questionIndex]
-  }, [questionIndex, game.questions]);
   
   const {mutate: checkAnswer, isPending: isChecking} = useMutation({
     mutationFn: async() => {
@@ -101,7 +104,7 @@ const MCQ = ({game}: Props) => {
         setQuestionIndex((prev) => prev + 1);
       }
     })
-  }, [checkAnswer, toast, isChecking, questionIndex, game.questions.length, finishGame, game.id]);
+  }, [checkAnswer, toast, isChecking, questionIndex, game.questions.length, finishGame]);
 
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -171,7 +174,7 @@ const MCQ = ({game}: Props) => {
       });
   }, [closeGame, toast, game.id]);
 
-  if (game.status === 'OPEN') {
+  if (gameStatus === 'OPEN') {
     return (
       <div className="absolute flex flex-col justify-center top-1/2 left-1/2 -translate-x-1/2 top-1/2 left-1/2">
         <div className="px-4 mt-2 font-semibold text-white bg-blue-500 rounded-md whitespace-nowrap">
@@ -179,7 +182,7 @@ const MCQ = ({game}: Props) => {
         </div>
          <div className="mt-4">
             <StartTimer timeStarted={new Date(game.timeStarted)}
-              duration={60} // Duration in seconds
+              duration={OPEN_DURATION} // Duration in seconds
               onTimerEnd={handleCountdownComplete} />
           </div>
       </div>
@@ -199,6 +202,7 @@ const MCQ = ({game}: Props) => {
       </div>
     )
   }
+  
   return (
     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 md:w-[80vw] max-w-4xl w-[90wv]">
       <div className="flex flex-row justify-between">

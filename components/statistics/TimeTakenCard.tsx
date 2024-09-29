@@ -5,7 +5,7 @@ import { formatTimeDelta } from '@/lib/utils';
 import { differenceInSeconds } from 'date-fns';
 
 type Props = {
-  timeEnded: Date;
+  timeEnded: Date | null;
   timeStarted: Date;
 }
 

@@ -56,7 +56,7 @@ const resolvers: IResolvers = {
 
       return updatedGame;
     },
-    finishGame: async (_: any, { gameId }: { gameId: string, timeEnded: string }) => {
+    finishGame: async (_: any, { gameId, timeEnded }: { gameId: string, timeEnded: Date }) => {
       const updatedGame = await prisma.game.update({
         where: {id: gameId},
         data: {
