@@ -16,6 +16,7 @@ import { cn, formatTimeDelta } from '@/lib/utils'
 import { useUserContext } from '@/app/context/UserContext'
 import { CLOSE_GAME, FINISH_GAME, GAME_UPDATED } from '@/app/api/graphql/operations'
 import { useMutation as useApolloMutation, useSubscription } from '@apollo/client'
+import StartTimer from './StartTimer';
 
 type Props = {
   game: Game & {questions: Pick<Question, 'id' | 'options' | 'question'>[]}
