@@ -127,32 +127,6 @@ const MCQ = ({game}: Props) => {
     }
   }, [handleNext]);
 
-  React.useEffect(() => {
-    if (game.status === 'OPEN') {
-      // Start 1-minute timer
-      const timerId = setTimeout(() => {
-        // Mutate game status to CLOSED
-        closeGame({ variables: { gameId: game.id }})
-        .then(() => {
-          toast({
-            title: 'Game Closed',
-            description: `The game has been closed for bets.`,
-          });
-        })
-        .catch((error) => {
-          console.error("Error closing game:", error);
-          toast({
-            title: "Error",
-            description: "There was an error closing the game.",
-            variant: 'destructive',
-          })
-        });
-      }, 60000); // 60,000 ms = 1 minute
-
-      return () => clearTimeout(timerId);
-    }
-  }, [game.status, game.id, closeGame, toast]);
-
   const options = React.useMemo(() => {
     if (!currentQuestion) return []
     if (!currentQuestion.options) return []
