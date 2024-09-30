@@ -19,7 +19,7 @@ import { useMutation as useApolloMutation, useSubscription } from '@apollo/clien
 import StartTimer from './StartTimer';
 
 const OPEN_DURATION = 60
-
+const QUESTION_DURATION = 60
 type Props = {
   game: Game & {questions: Pick<Question, 'id' | 'options' | 'question'>[]}
 }
@@ -34,6 +34,7 @@ const MCQ = ({game}: Props) => {
   const { userRole } = useUserContext();
   const [now, setNow] = React.useState<Date>(new Date());
   const [gameStatus, setGameStatus] = React.useState<$Enums.GameStatus>(game.status);
+  const [questionStartTime, setQuestionStartTime] = React.useState(new Date());
   const [closeGame] = useApolloMutation(CLOSE_GAME);
   const [finishGame] = useApolloMutation(FINISH_GAME);
 
@@ -51,16 +52,6 @@ const MCQ = ({game}: Props) => {
     },
   });
 
-  React.useEffect(() => {
-    const interval = setInterval(() => {
-      if (!hasEnded) {
-        setNow(new Date());
-      }
-    }, 1000);
-    return () => { clearInterval(interval) }
-  }, [hasEnded])
-
-  
   const {mutate: checkAnswer, isPending: isChecking} = useMutation({
     mutationFn: async() => {
       const payload: z.infer<typeof checkAnswerSchema> = {
@@ -102,9 +93,10 @@ const MCQ = ({game}: Props) => {
           return;
         }
         setQuestionIndex((prev) => prev + 1);
+        setQuestionStartTime(new Date());
       }
     })
-  }, [checkAnswer, toast, isChecking, questionIndex, game.questions.length, finishGame]);
+  }, [checkAnswer, toast, isChecking, questionIndex, game.questions.length, finishGame, game.id]);
 
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -148,17 +140,35 @@ const MCQ = ({game}: Props) => {
       });
   }, [closeGame, toast, game.id]);
 
+  const handleQuestionTimerEnd = React.useCallback(() => {
+    handleNext();
+  }, [handleNext]);
+
   if (gameStatus === 'OPEN') {
     return (
       <div className="absolute flex flex-col justify-center top-1/2 left-1/2 -translate-x-1/2 top-1/2 left-1/2">
         <div className="px-4 mt-2 font-semibold text-white bg-blue-500 rounded-md whitespace-nowrap">
           Game will start in 1 minute...
         </div>
-         <div className="mt-4">
-            <StartTimer timeStarted={new Date(game.timeStarted)}
-              duration={OPEN_DURATION} // Duration in seconds
-              onTimerEnd={handleCountdownComplete} />
-          </div>
+        <div className="mt-4">
+          <StartTimer
+            // while the key prop doesn't directly set endTimeRef,
+            //  changing the key does cause the component to remount
+            key={new Date(game.timeStarted).getTime()}
+            duration={OPEN_DURATION}
+            onTimerEnd={handleCountdownComplete}
+          >
+            {(timeLeft) => (
+              <div className="flex items-center justify-center space-x-2 bg-gray-100 rounded-lg p-4 w-48">
+                <Timer className={`h-6 w-6 ${timeLeft === 0 ? 'text-green-500' : 'text-blue-500'}`} />
+                <div className="text-2xl font-bold">
+                  {Math.floor(timeLeft / 60).toString().padStart(2, '0')}:
+                  {(timeLeft % 60).toString().padStart(2, '0')}
+                </div>
+              </div>
+            )}
+          </StartTimer>
+        </div>
       </div>
     )
   }
@@ -186,10 +196,18 @@ const MCQ = ({game}: Props) => {
             <span className="mr-2 text-slate-400">Topic</span>
             <span className="px-2 py-1 text-white rounded-lg bg-slate-800">{game.topic}</span>
           </p>
-          <div className="flex self-start mt-3 text-slate-400">
-            <Timer className="mr-2" />
-            {now && formatTimeDelta(differenceInSeconds(now, game.timeStarted))}
-          </div>
+          <StartTimer
+            key={questionStartTime.getTime()} // Reset for each question
+            duration={QUESTION_DURATION}
+            onTimerEnd={handleQuestionTimerEnd}
+          >
+            {(timeLeft) => (
+              <div className="flex self-start mt-3 text-slate-400">
+                <Timer className="mr-2" />
+                {formatTimeDelta(timeLeft)}
+              </div>
+            )}
+          </StartTimer>
         </div>
         <MCQCounter correctAnswers={correctAnswers} wrongAnswers={wrongAnswers} />
       </div>

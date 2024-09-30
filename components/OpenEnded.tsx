@@ -1,7 +1,6 @@
 'use client';
 import { cn, formatTimeDelta } from '@/lib/utils';
 import { $Enums, Game, Question } from '@prisma/client'
-import { differenceInSeconds } from 'date-fns';
 import { BarChart, ChevronRight, Loader2, Timer } from 'lucide-react';
 import React from 'react'
 import { Card, CardDescription, CardHeader, CardTitle } from './ui/card';
@@ -19,6 +18,7 @@ import { useMutation as useApolloMutation, useSubscription } from '@apollo/clien
 import StartTimer from './StartTimer';
 
 const OPEN_DURATION = 60
+const QUESTION_DURATION = 60
 
 type Props = {
   game: Game & {questions: Pick<Question, 'id' | 'question' | 'answer'>[] };
@@ -31,7 +31,7 @@ const OpenEnded = ({ game }: Props) => {
   const {toast} = useToast();
   const { userRole } = useUserContext();
   const [gameStatus, setGameStatus] = React.useState<$Enums.GameStatus>(game.status);
-  const [now, setNow] = React.useState<Date | string>("");
+  const [questionStartTime, setQuestionStartTime] = React.useState(new Date());
 
   const currentQuestion = React.useMemo(() => {
     return game.questions[questionIndex]
@@ -49,17 +49,6 @@ const OpenEnded = ({ game }: Props) => {
       }
     },
   });
-
-  React.useEffect(() => {
-    setNow(new Date());
-    const interval = setInterval(() => {
-      if (!hasEnded) {
-        setNow(new Date());
-      }
-    }, 1000);
-    return () => { clearInterval(interval) }
-  }, [hasEnded])
-
 
   const {mutate: checkAnswer, isPending: isChecking} = useMutation({
     mutationFn: async() => {
@@ -100,6 +89,7 @@ const OpenEnded = ({ game }: Props) => {
           return;
         }
         setQuestionIndex((prev) => prev + 1);
+        setQuestionStartTime(new Date());
       }
     })
   }, [checkAnswer, toast, isChecking, questionIndex, game.questions.length, finishGame, game.id]);
@@ -118,7 +108,6 @@ const OpenEnded = ({ game }: Props) => {
   }, [handleNext]);
 
   const handleCountdownComplete = React.useCallback(() => {
-    // Automatically close the game when countdown finishes
     closeGame({ variables: { gameId: game.id } })
       .then(() => {
         toast({
@@ -131,16 +120,34 @@ const OpenEnded = ({ game }: Props) => {
       });
   }, [closeGame, toast, game.id]);
 
+  const handleQuestionTimerEnd = React.useCallback(() => {
+    handleNext();
+  }, [handleNext]);
+
   if (gameStatus === 'OPEN') {
     return (
-      <div className="absolute flex flex-col justify-center top-1/2 left-1/2 -translate-x-1/2 top-1/2 left-1/2">
+      <div className="absolute flex flex-col justify-center top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
         <div className="px-4 mt-2 font-semibold text-white bg-blue-500 rounded-md whitespace-nowrap">
           Game will start in 1 minute...
         </div>
         <div className="mt-4">
-          <StartTimer timeStarted={new Date(game.timeStarted)}
-            duration={OPEN_DURATION} // Duration in seconds
-            onTimerEnd={handleCountdownComplete} />
+          <StartTimer 
+            // while the key prop doesn't directly set endTimeRef,
+            //  changing the key does cause the component to remount
+            key={new Date(game.timeStarted).getTime()}
+            duration={OPEN_DURATION}
+            onTimerEnd={handleCountdownComplete}
+          >
+            {(timeLeft) => (
+              <div className="flex items-center justify-center space-x-2 bg-gray-100 rounded-lg p-4 w-48">
+                <Timer className={`h-6 w-6 ${timeLeft === 0 ? 'text-green-500' : 'text-blue-500'}`} />
+                <div className="text-2xl font-bold">
+                  {Math.floor(timeLeft / 60).toString().padStart(2, '0')}:
+                  {(timeLeft % 60).toString().padStart(2, '0')}
+                </div>
+              </div>
+            )}
+          </StartTimer>
         </div>
       </div>
     )
@@ -150,7 +157,7 @@ const OpenEnded = ({ game }: Props) => {
     return (
       <div className="absolute flex flex-col justify-center top-1/2 left-1/2 -translate-x-1/2 top-1/2 left-1/2">
         <div className="px-4 mt-2 font-semibold text-white bg-green-500 rounded-md whitespace-nowrap">
-          You completed in {formatTimeDelta(differenceInSeconds(now, game.timeStarted))}
+          You completed the game!
         </div>
         <Link href={`/statistics/${game.id}`} className={cn(buttonVariants(), "mt-2")}>
           View Statistics
@@ -164,17 +171,23 @@ const OpenEnded = ({ game }: Props) => {
     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 md:w-[80vw] max-w-4xl w-[90wv]">
       <div className="flex flex-row justify-between">
         <div className="flex flex-col">
-          {/* topic */}
           <p>
             <span className="mr-2 text-slate-400">Topic</span>
             <span className="px-2 py-1 text-white rounded-lg bg-slate-800">{game.topic}</span>
           </p>
-          <div className="flex self-start mt-3 text-slate-400">
-            <Timer className="mr-2" />
-            {now && formatTimeDelta(differenceInSeconds(now, game.timeStarted))}
-          </div>
+          <StartTimer 
+            key={questionStartTime.getTime()} // Reset for each question
+            duration={QUESTION_DURATION}
+            onTimerEnd={handleQuestionTimerEnd}
+          >
+            {(timeLeft) => (
+              <div className="flex self-start mt-3 text-slate-400">
+                <Timer className="mr-2" />
+                {formatTimeDelta(timeLeft)}
+              </div>
+            )}
+          </StartTimer>
         </div>
-        {/* <MCQCounter correctAnswers={correctAnswers} wrongAnswers={wrongAnswers} /> */}
       </div>
       <Card className='w-full mt-4'>
         <CardHeader className='flex flex-row -items-center'>
