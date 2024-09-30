@@ -87,7 +87,8 @@ const OpenEnded = ({ game }: Props) => {
         })
         if (questionIndex === game.questions.length -1) {
           setHasEnded(true);
-          finishGame({variables: {gameId: game.id, timeEnded: now}})
+          const currentTime = new Date().toISOString()
+          finishGame({variables: {gameId: game.id, timeEnded: currentTime}})
           .catch((error) => {
             console.error("Error finishing game", error);
             toast({
@@ -101,7 +102,7 @@ const OpenEnded = ({ game }: Props) => {
         setQuestionIndex((prev) => prev + 1);
       }
     })
-  }, [checkAnswer, toast, isChecking, questionIndex, game.questions.length, finishGame]);
+  }, [checkAnswer, toast, isChecking, questionIndex, game.questions.length, finishGame, game.id]);
 
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {

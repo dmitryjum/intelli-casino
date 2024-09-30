@@ -30,7 +30,7 @@ const typeDefs = gql`
   type Mutation {
     openGame(gameId: String!): Game!
     closeGame(gameId: String!): Game!
-    finishGame(gameId: String!): Game!
+    finishGame(gameId: String!, timeEnded: String): Game!
   }
 
   type Subscription {

@@ -54,13 +54,14 @@ export const CLOSE_GAME = gql`
 `;
 
 export const FINISH_GAME = gql`
-  mutation FinishGame($gameId: String!) {
-    finishGame(gameId: $gameId) {
+  mutation FinishGame($gameId: String!, $timeEnded: String) {
+    finishGame(gameId: $gameId, timeEnded: $timeEnded) {
       id
       topic
       status
       openAt
       gameType
+      timeEnded
     }
   }
 `; 
