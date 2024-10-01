@@ -32,7 +32,7 @@ const resolvers: IResolvers = {
         where: { id: gameId },
         data: {
           status: 'OPEN',
-          openAt: new Date()
+          openAt: new Date().toISOString()
         },
       });
 

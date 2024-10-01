@@ -156,6 +156,7 @@ const MCQ = ({game}: Props) => {
             //  changing the key does cause the component to remount
             key={new Date(game.timeStarted).getTime()}
             duration={OPEN_DURATION}
+            startAt={game.openAt}
             onTimerEnd={handleCountdownComplete}
           >
             {(timeLeft) => (

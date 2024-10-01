@@ -19,7 +19,7 @@ export async function POST(req: Request, res: Response) {
     const game = await prisma.game.create({
       data: {
         gameType: type,
-        timeStarted: new Date(),
+        timeStarted: new Date().toISOString(),
         userId: session.user.id,
         topic
       }
