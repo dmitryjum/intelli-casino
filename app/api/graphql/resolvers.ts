@@ -27,13 +27,20 @@ const resolvers: IResolvers = {
     },
   },
   Mutation: {
-    openGame: async (_: any, { gameId }: { gameId: string }) => {
+    openGame: async (_: any, args:
+    { gameId: string, currentQuestionStartTime?: string, currentQuestionIndex?: number }) => {
+      console.log("OPEN GAME MUTATION: ", args);
+      let updatedData: any = {
+        status: 'OPEN',
+        openAt: new Date().toISOString(),
+      }
+
+      if (args.currentQuestionStartTime) updatedData.currentQuestionStartTime = new Date(args.currentQuestionStartTime);
+
+      if (args.currentQuestionIndex) updatedData.currentQuestionIndex = args.currentQuestionIndex;
       const updatedGame = await prisma.game.update({
-        where: { id: gameId },
-        data: {
-          status: 'OPEN',
-          openAt: new Date().toISOString()
-        },
+        where: { id: args.gameId },
+        data: updatedData,
       });
 
       // publish to pubsub
@@ -41,13 +48,20 @@ const resolvers: IResolvers = {
 
       return updatedGame;
     },
-    closeGame: async (_: any, { gameId }: { gameId: string }) => {
+    closeGame: async (_: any, { gameId, currentQuestionStartTime, currentQuestionIndex }:
+    { gameId: string, currentQuestionStartTime?: string, currentQuestionIndex?: number }) => {
+      let updatedData: any = {
+        status: 'CLOSED',
+        openAt: null,
+      }
+
+      if (currentQuestionStartTime) updatedData.currentQuestionStartTime = new Date(currentQuestionStartTime);
+
+      if (currentQuestionIndex) updatedData.currentQuestionIndex = currentQuestionIndex;
+      console.log("CLOSE GAME MUTATION: ", updatedData);
       const updatedGame = await prisma.game.update({
         where: { id: gameId },
-        data: {
-          status: 'CLOSED',
-          openAt: null,
-        },
+        data: updatedData,
       });
 
 
@@ -67,6 +81,19 @@ const resolvers: IResolvers = {
       })
 
       // publish to pubsub
+      pubsub.publish(GAME_UPDATED, { gameUpdated: updatedGame });
+
+      return updatedGame;
+    },
+    updateGameQuestion: async (_: any, { gameId, currentQuestionStartTime, currentQuestionIndex }: { gameId: string, currentQuestionStartTime: string, currentQuestionIndex: number }) => {
+      const updatedGame = await prisma.game.update({
+        where: { id: gameId },
+        data: {
+          currentQuestionIndex: currentQuestionIndex,
+          currentQuestionStartTime: new Date(currentQuestionStartTime),
+        },
+      });
+
       pubsub.publish(GAME_UPDATED, { gameUpdated: updatedGame });
 
       return updatedGame;

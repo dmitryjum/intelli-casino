@@ -13,7 +13,7 @@ import axios from 'axios';
 import BlankAnswerInput from './BlankAnswerInput';
 import Link from 'next/link';
 import { useUserContext } from '@/app/context/UserContext'
-import { CLOSE_GAME, FINISH_GAME, GAME_UPDATED } from '@/app/api/graphql/operations'
+import { CLOSE_GAME, FINISH_GAME, GAME_UPDATED, UPDATE_GAME_QUESTION } from '@/app/api/graphql/operations'
 import { useMutation as useApolloMutation, useSubscription } from '@apollo/client'
 import StartTimer from './StartTimer';
 
@@ -25,27 +25,32 @@ type Props = {
 };
 
 const OpenEnded = ({ game }: Props) => {
-  const [questionIndex, setQuestionIndex] = React.useState(0);
+  const [questionIndex, setQuestionIndex] = React.useState<number>(game.currentQuestionIndex);
   const [blankAnswer, setBlankAnswer] = React.useState<string>("");
   const [hasEnded, setHasEnded] = React.useState<boolean>(false);
   const {toast} = useToast();
   const { userRole } = useUserContext();
   const [gameStatus, setGameStatus] = React.useState<$Enums.GameStatus>(game.status);
-  const [questionStartTime, setQuestionStartTime] = React.useState(new Date());
+  const [questionStartTime, setQuestionStartTime] = React.useState<Date | null>(game.currentQuestionStartTime);
 
   const currentQuestion = React.useMemo(() => {
     return game.questions[questionIndex]
   }, [questionIndex, game.questions]);
-
+  
   const [closeGame] = useApolloMutation(CLOSE_GAME);
   const [finishGame] = useApolloMutation(FINISH_GAME);
+  const [updateGameQuestion] = useApolloMutation(UPDATE_GAME_QUESTION);
 
   useSubscription<{ gameUpdated: Game }>(GAME_UPDATED, {
     variables: { gameId: game.id },
     onData: ({ data }) => {
       const updatedGame = data.data?.gameUpdated;
       if (updatedGame) {
-        setGameStatus(updatedGame.status);
+        if (updatedGame.status !== gameStatus) setGameStatus(updatedGame.status);
+        if (updatedGame.currentQuestionIndex !== questionIndex || updatedGame.currentQuestionStartTime !== questionStartTime) {
+          setQuestionIndex(updatedGame.currentQuestionIndex);
+          setQuestionStartTime(updatedGame.currentQuestionStartTime);
+        }
       }
     },
   });
@@ -88,8 +93,13 @@ const OpenEnded = ({ game }: Props) => {
           })
           return;
         }
-        setQuestionIndex((prev) => prev + 1);
-        setQuestionStartTime(new Date());
+        updateGameQuestion({
+          variables: {
+            gameId: game.id,
+            currentQuestionIndex: questionIndex + 1,
+            currentQuestionStartTime: new Date().toISOString(),
+          },
+        });
       }
     })
   }, [checkAnswer, toast, isChecking, questionIndex, game.questions.length, finishGame, game.id]);
@@ -108,7 +118,13 @@ const OpenEnded = ({ game }: Props) => {
   }, [handleNext]);
 
   const handleCountdownComplete = React.useCallback(() => {
-    closeGame({ variables: { gameId: game.id } })
+    closeGame({
+      variables: {
+        gameId: game.id,
+        currentQuestionIndex: 0,
+        currentQuestionStartTime: new Date().toISOString()
+      }
+    })
       .then(() => {
         toast({
           title: 'Game Closed',
@@ -177,8 +193,9 @@ const OpenEnded = ({ game }: Props) => {
             <span className="px-2 py-1 text-white rounded-lg bg-slate-800">{game.topic}</span>
           </p>
           <StartTimer 
-            key={questionStartTime.getTime()} // Reset for each question
+            key={new Date(questionStartTime).getTime()} // Reset for each question
             duration={QUESTION_DURATION}
+            startAt={questionStartTime}
             onTimerEnd={handleQuestionTimerEnd}
           >
             {(timeLeft) => (

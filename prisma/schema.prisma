@@ -80,8 +80,11 @@ model Game {
   topic String
   timeEnded DateTime?
   gameType GameType
+  currentQuestionIndex Int @default(0)
+  currentQuestionStartTime DateTime?
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   questions Question[]
+
 
   @@index([userId], name: "game_userId_idx")
 }

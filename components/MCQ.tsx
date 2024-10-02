@@ -14,7 +14,7 @@ import { useToast } from './ui/use-toast'
 import Link from 'next/link'
 import { cn, formatTimeDelta } from '@/lib/utils'
 import { useUserContext } from '@/app/context/UserContext'
-import { CLOSE_GAME, FINISH_GAME, GAME_UPDATED } from '@/app/api/graphql/operations'
+import { CLOSE_GAME, FINISH_GAME, GAME_UPDATED, UPDATE_GAME_QUESTION } from '@/app/api/graphql/operations'
 import { useMutation as useApolloMutation, useSubscription } from '@apollo/client'
 import StartTimer from './StartTimer';
 
@@ -25,7 +25,7 @@ type Props = {
 }
 
 const MCQ = ({game}: Props) => {
-  const [questionIndex, setQuestionIndex] = React.useState(0);
+  const [questionIndex, setQuestionIndex] = React.useState(game.currentQuestionIndex);
   const [selectedChoice, setSelectedChoice] = React.useState<number>(0);
   const [correctAnswers, setCorrectAnswers] = React.useState<number>(0);
   const [wrongAnswers, setWrongAnswers] = React.useState<number>(0);
@@ -34,9 +34,10 @@ const MCQ = ({game}: Props) => {
   const { userRole } = useUserContext();
   const [now, setNow] = React.useState<Date>(new Date());
   const [gameStatus, setGameStatus] = React.useState<$Enums.GameStatus>(game.status);
-  const [questionStartTime, setQuestionStartTime] = React.useState(new Date());
+  const [questionStartTime, setQuestionStartTime] = React.useState(game.currentQuestionStartTime);
   const [closeGame] = useApolloMutation(CLOSE_GAME);
   const [finishGame] = useApolloMutation(FINISH_GAME);
+  const [updateGameQuestion] = useApolloMutation(UPDATE_GAME_QUESTION);
 
   const currentQuestion = React.useMemo(() => {
     return game.questions[questionIndex]
@@ -47,7 +48,11 @@ const MCQ = ({game}: Props) => {
     onData: ({ data }) => {
       const updatedGame = data.data?.gameUpdated;
       if (updatedGame) {
-        setGameStatus(updatedGame.status);
+        if (updatedGame.status !== gameStatus) setGameStatus(updatedGame.status);
+        if (updatedGame.currentQuestionIndex !== questionIndex) {
+          setQuestionIndex(updatedGame.currentQuestionIndex);
+          setQuestionStartTime(new Date(updatedGame.currentQuestionStartTime));
+        }
       }
     },
   });
@@ -92,8 +97,13 @@ const MCQ = ({game}: Props) => {
           })
           return;
         }
-        setQuestionIndex((prev) => prev + 1);
-        setQuestionStartTime(new Date());
+        updateGameQuestion({
+          variables: {
+            gameId: game.id,
+            currentQuestionIndex: questionIndex + 1,
+            currentQuestionStartTime: new Date().toISOString(),
+          },
+        });
       }
     })
   }, [checkAnswer, toast, isChecking, questionIndex, game.questions.length, finishGame, game.id]);

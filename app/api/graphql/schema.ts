@@ -20,6 +20,8 @@ const typeDefs = gql`
     userId: String!
     timeStarted: String!
     timeEnded: String
+    currentQuestionIndex: Int!
+    currentQuestionStartTime: String
   }
 
   type Query {
@@ -28,9 +30,10 @@ const typeDefs = gql`
   }
 
   type Mutation {
-    openGame(gameId: String!): Game!
-    closeGame(gameId: String!): Game!
+    openGame(gameId: String!, currentQuestionStartTime: String, currentQuestionIndex: Int): Game!
+    closeGame(gameId: String!, currentQuestionStartTime: String, currentQuestionIndex: Int): Game!
     finishGame(gameId: String!, timeEnded: String): Game!
+    updateGameQuestion(gameId: String!, currentQuestionStartTime: String!, currentQuestionIndex: Int!): Game!
   }
 
   type Subscription {

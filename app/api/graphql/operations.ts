@@ -29,26 +29,31 @@ export const GAME_UPDATED = gql`
     }
   }
 `;
+
 export const OPEN_GAME = gql`
-  mutation OpenGame($gameId: String!) {
-    openGame(gameId: $gameId) {
+  mutation OpenGame($gameId: String!, $currentQuestionStartTime: String, $currentQuestionIndex: Int) {
+    openGame(gameId: $gameId, currentQuestionStartTime: $currentQuestionStartTime, currentQuestionIndex: $currentQuestionIndex) {
       id
       topic
       status
       openAt
       gameType
+      currentQuestionStartTime
+      currentQuestionIndex
     }
   }
 `;
 
 export const CLOSE_GAME = gql`
-  mutation CloseGame($gameId: String!) {
-    closeGame(gameId: $gameId) {
+  mutation CloseGame($gameId: String!, $currentQuestionStartTime: String, $currentQuestionIndex: Int) {
+    closeGame(gameId: $gameId, currentQuestionStartTime: $currentQuestionStartTime, currentQuestionIndex: $currentQuestionIndex) {
       id
       topic
       status
       openAt
       gameType
+      currentQuestionStartTime
+      currentQuestionIndex
     }
   }
 `;
@@ -64,4 +69,14 @@ export const FINISH_GAME = gql`
       timeEnded
     }
   }
-`; 
+`;
+
+export const UPDATE_GAME_QUESTION = gql`
+  mutation UpdateGameQuestion($gameId: String!, $currentQuestionStartTime: String!, $currentQuestionIndex: Int!) {
+    updateGameQuestion(gameId: $gameId, currentQuestionStartTime: $currentQuestionStartTime, currentQuestionIndex: $currentQuestionIndex) {
+      id
+      currentQuestionIndex
+      currentQuestionStartTime
+    }
+  }
+`;
