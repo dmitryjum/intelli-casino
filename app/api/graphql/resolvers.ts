@@ -1,12 +1,14 @@
 import { PrismaClient } from '@prisma/client';
 import { PubSub, withFilter } from 'graphql-subscriptions'
 import { IResolvers } from '@graphql-tools/utils';
+import GraphQLJSON from 'graphql-type-json';
 
 const pubsub = new PubSub();
 const prisma = new PrismaClient();
 const GAME_UPDATED = 'GAME_UPDATED';
 
 const resolvers: IResolvers = {
+  JSON: GraphQLJSON,
   Query: {
     activeGames: async () => {
       const activeGames = await prisma.game.findMany({
@@ -22,24 +24,38 @@ const resolvers: IResolvers = {
       console.log("activeGames:", activeGames);
       return activeGames;
     },
-    game: async (_: any, { id }: { id: string }) => {
-      return prisma.game.findUnique({ where: { id } });
+    game: async (_: any, { gameId }: { gameId: string }) => {
+      console.log("resolver query: ", gameId);
+      return prisma.game.findUnique({
+        where: { id: gameId },
+        include: {
+          questions: {
+            select: {
+              id: true,
+              question: true,
+              options: true,
+              answer: true
+            }
+          }
+        }
+      });
     },
   },
   Mutation: {
-    openGame: async (_: any, args:
-    { gameId: string, currentQuestionStartTime?: string, currentQuestionIndex?: number }) => {
-      console.log("OPEN GAME MUTATION: ", args);
+    openGame: async (_: any, { gameId, currentQuestionIndex }:
+    { gameId: string, currentQuestionIndex?: number }) => {
+      
       let updatedData: any = {
         status: 'OPEN',
         openAt: new Date().toISOString(),
       }
 
-      if (args.currentQuestionStartTime) updatedData.currentQuestionStartTime = new Date(args.currentQuestionStartTime);
-
-      if (args.currentQuestionIndex) updatedData.currentQuestionIndex = args.currentQuestionIndex;
+      if (currentQuestionIndex) {
+        updatedData.currentQuestionIndex = currentQuestionIndex;
+        updatedData.currentQuestionStartTime = new Date().toISOString()
+      }
       const updatedGame = await prisma.game.update({
-        where: { id: args.gameId },
+        where: { id: gameId },
         data: updatedData,
       });
 
@@ -48,17 +64,17 @@ const resolvers: IResolvers = {
 
       return updatedGame;
     },
-    closeGame: async (_: any, { gameId, currentQuestionStartTime, currentQuestionIndex }:
-    { gameId: string, currentQuestionStartTime?: string, currentQuestionIndex?: number }) => {
+    closeGame: async (_: any, { gameId, currentQuestionIndex }:
+    { gameId: string, currentQuestionIndex?: number }) => {
       let updatedData: any = {
         status: 'CLOSED',
         openAt: null,
       }
 
-      if (currentQuestionStartTime) updatedData.currentQuestionStartTime = new Date(currentQuestionStartTime);
-
-      if (currentQuestionIndex) updatedData.currentQuestionIndex = currentQuestionIndex;
-      console.log("CLOSE GAME MUTATION: ", updatedData);
+      if (currentQuestionIndex) {
+        updatedData.currentQuestionIndex = currentQuestionIndex;
+        updatedData.currentQuestionStartTime = new Date().toISOString()
+      }
       const updatedGame = await prisma.game.update({
         where: { id: gameId },
         data: updatedData,
@@ -90,7 +106,7 @@ const resolvers: IResolvers = {
         where: { id: gameId },
         data: {
           currentQuestionIndex: currentQuestionIndex,
-          currentQuestionStartTime: new Date(currentQuestionStartTime),
+          currentQuestionStartTime: currentQuestionStartTime,
         },
       });
 

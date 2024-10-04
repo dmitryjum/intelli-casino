@@ -15,6 +15,29 @@ export const GET_ACTIVE_GAMES = gql`
   }
 `;
 
+export const GET_GAME = gql`
+  query GetGame($gameId: String!) {
+    game(gameId: $gameId) {
+      id
+      status
+      topic
+      userId
+      openAt
+      gameType
+      timeStarted
+      timeEnded
+      currentQuestionIndex
+      currentQuestionStartTime
+      questions {
+        id
+        question
+        options
+        answer
+      }
+    }
+  }
+`
+
 export const GAME_UPDATED = gql`
   subscription onGameUpdated($gameId: String) {
     gameUpdated(gameId: $gameId) {
@@ -26,6 +49,14 @@ export const GAME_UPDATED = gql`
       gameType
       timeStarted
       timeEnded
+      currentQuestionIndex
+      currentQuestionStartTime
+      questions {
+        id
+        question
+        options
+        answer
+      }
     }
   }
 `;
@@ -40,6 +71,12 @@ export const OPEN_GAME = gql`
       gameType
       currentQuestionStartTime
       currentQuestionIndex
+      questions {
+        id
+        question
+        options
+        answer
+      }
     }
   }
 `;
@@ -54,6 +91,12 @@ export const CLOSE_GAME = gql`
       gameType
       currentQuestionStartTime
       currentQuestionIndex
+      questions {
+        id
+        question
+        options
+        answer
+      }
     }
   }
 `;
@@ -77,6 +120,12 @@ export const UPDATE_GAME_QUESTION = gql`
       id
       currentQuestionIndex
       currentQuestionStartTime
+      questions {
+        id
+        question
+        options
+        answer
+      }
     }
   }
 `;

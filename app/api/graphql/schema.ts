@@ -1,5 +1,7 @@
 import { gql } from "graphql-tag";
 const typeDefs = gql`
+  scalar JSON
+
   enum GameStatus {
     OPEN
     CLOSED
@@ -17,16 +19,24 @@ const typeDefs = gql`
     topic: String!
     openAt: String
     gameType: GameType
-    userId: String!
+    userId: String
     timeStarted: String!
     timeEnded: String
     currentQuestionIndex: Int!
     currentQuestionStartTime: String
+    questions: [Question!]
+  }
+
+  type Question {
+    id: ID!
+    question: String!
+    options: JSON
+    answer: String!
   }
 
   type Query {
     activeGames: [Game!]!
-    game(id: String!): Game!
+    game(gameId: String!): Game!
   }
 
   type Mutation {

@@ -13,47 +13,86 @@ import axios from 'axios';
 import BlankAnswerInput from './BlankAnswerInput';
 import Link from 'next/link';
 import { useUserContext } from '@/app/context/UserContext'
-import { CLOSE_GAME, FINISH_GAME, GAME_UPDATED, UPDATE_GAME_QUESTION } from '@/app/api/graphql/operations'
-import { useMutation as useApolloMutation, useSubscription } from '@apollo/client'
+import { CLOSE_GAME, FINISH_GAME, GAME_UPDATED, UPDATE_GAME_QUESTION, GET_GAME } from '@/app/api/graphql/operations'
+import { useMutation as useApolloMutation, useSubscription, useQuery } from '@apollo/client'
 import StartTimer from './StartTimer';
 
 const OPEN_DURATION = 60
 const QUESTION_DURATION = 60
 
 type Props = {
-  game: Game & {questions: Pick<Question, 'id' | 'question' | 'answer'>[] };
+  // game: Game & {questions: Pick<Question, 'id' | 'question' | 'answer'>[] };
+  gameId: string
 };
 
-const OpenEnded = ({ game }: Props) => {
-  const [questionIndex, setQuestionIndex] = React.useState<number>(game.currentQuestionIndex);
+const OpenEnded = ({ gameId }: Props) => {
+  // const [questionIndex, setQuestionIndex] = React.useState<number>(game.currentQuestionIndex || 0);
   const [blankAnswer, setBlankAnswer] = React.useState<string>("");
   const [hasEnded, setHasEnded] = React.useState<boolean>(false);
   const {toast} = useToast();
   const { userRole } = useUserContext();
-  const [gameStatus, setGameStatus] = React.useState<$Enums.GameStatus>(game.status);
-  const [questionStartTime, setQuestionStartTime] = React.useState<Date | null>(game.currentQuestionStartTime);
+  // const [gameStatus, setGameStatus] = React.useState<$Enums.GameStatus>(game.status);
+  // const [questionStartTime, setQuestionStartTime] = React.useState<Date | null>(game.currentQuestionStartTime);
+  // const [gameState, setGameState] = React.useState<GameState>({
+  //   status: game.status,
+  //   questionIndex: game.currentQuestionIndex || 0,
+  //   questionStartTime: game.currentQuestionStartTime,
+  // })
 
-  const currentQuestion = React.useMemo(() => {
-    return game.questions[questionIndex]
-  }, [questionIndex, game.questions]);
   
   const [closeGame] = useApolloMutation(CLOSE_GAME);
   const [finishGame] = useApolloMutation(FINISH_GAME);
   const [updateGameQuestion] = useApolloMutation(UPDATE_GAME_QUESTION);
+  
+  const { data, loading, error } = useQuery<{ game: Game & { questions: Pick<Question, 'id' | 'question' | 'answer'>[] } }>(GET_GAME, {
+    variables: { gameId },
+    fetchPolicy: 'cache-and-network',
+  });
 
-  useSubscription<{ gameUpdated: Game }>(GAME_UPDATED, {
-    variables: { gameId: game.id },
-    onData: ({ data }) => {
+  const game: Game & { questions: Pick<Question, 'id' | 'question' | 'answer'>[] } = {
+    id: data?.game?.id || '', // Ensure id is a string
+    userId: data?.game?.userId || '', // Ensure userId is a string
+    status: data?.game?.status || $Enums.GameStatus.OPEN, // Provide a default status
+    openAt: data?.game?.openAt || null, // Keep as is
+    timeStarted: data?.game?.timeStarted || new Date(), // Provide a default date
+    topic: data?.game?.topic || '', // Ensure topic is a string
+    timeEnded: data?.game?.timeEnded || null, // Keep as is
+    gameType: data?.game?.gameType || $Enums.GameType.open_ended, // Provide a default gameType
+    currentQuestionIndex: data?.game?.currentQuestionIndex || 0, // Provide a default index
+    currentQuestionStartTime: data?.game?.currentQuestionStartTime || null, // Keep as is
+    questions: (data?.game as { questions?: any[] })?.questions || []
+  }
+  
+  const currentQuestion = React.useMemo(() => {
+    return game.questions[game.currentQuestionIndex] || { question: "No question available"}
+  }, [game.currentQuestionIndex, game.questions]);
+  console.log("DATA: ", data)
+  console.log("GAME: ", game)
+  console.log("current question: ", currentQuestion);
+
+  useSubscription<{ gameUpdated: Game & { questions: Pick<Question, 'id' | 'question' | 'answer'>[] }}>(GAME_UPDATED, {
+    variables: { gameId },
+    onData: ({ client, data }) => {
+      if (!data) return;
       const updatedGame = data.data?.gameUpdated;
       if (updatedGame) {
-        if (updatedGame.status !== gameStatus) setGameStatus(updatedGame.status);
-        if (updatedGame.currentQuestionIndex !== questionIndex || updatedGame.currentQuestionStartTime !== questionStartTime) {
-          setQuestionIndex(updatedGame.currentQuestionIndex);
-          setQuestionStartTime(updatedGame.currentQuestionStartTime);
-        }
+        client.writeQuery({
+          query: GET_GAME,
+          data: {
+            game: updatedGame
+          }
+        });
+        // setGameState({
+        //   status: updatedGame.status,
+        //   questionIndex: updatedGame.currentQuestionIndex,
+        //   questionStartTime: updatedGame.currentQuestionStartTime
+        // })
       }
     },
   });
+
+  if (loading) return <div>Loading...</div>
+  if (error) return <div>Error: {error.message}</div>
 
   const {mutate: checkAnswer, isPending: isChecking} = useMutation({
     mutationFn: async() => {
@@ -79,7 +118,7 @@ const OpenEnded = ({ game }: Props) => {
           title: `Your answer is ${percentageSimilar}% similar to the correct answer`,
           description: "Answers are matched based on similarity comparisons",
         })
-        if (questionIndex === game.questions.length -1) {
+        if (game.currentQuestionIndex === game.questions.length -1) {
           setHasEnded(true);
           const currentTime = new Date().toISOString()
           finishGame({variables: {gameId: game.id, timeEnded: currentTime}})
@@ -96,13 +135,13 @@ const OpenEnded = ({ game }: Props) => {
         updateGameQuestion({
           variables: {
             gameId: game.id,
-            currentQuestionIndex: questionIndex + 1,
+            currentQuestionIndex: game.currentQuestionIndex + 1,
             currentQuestionStartTime: new Date().toISOString(),
           },
         });
       }
     })
-  }, [checkAnswer, toast, isChecking, questionIndex, game.questions.length, finishGame, game.id]);
+  }, [checkAnswer, toast, isChecking, game.currentQuestionIndex, game.questions.length, finishGame, game.id]);
 
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -121,8 +160,7 @@ const OpenEnded = ({ game }: Props) => {
     closeGame({
       variables: {
         gameId: game.id,
-        currentQuestionIndex: 0,
-        currentQuestionStartTime: new Date().toISOString()
+        currentQuestionIndex: 0
       }
     })
       .then(() => {
@@ -140,7 +178,7 @@ const OpenEnded = ({ game }: Props) => {
     handleNext();
   }, [handleNext]);
 
-  if (gameStatus === 'OPEN') {
+  if (game.status === 'OPEN') {
     return (
       <div className="absolute flex flex-col justify-center top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
         <div className="px-4 mt-2 font-semibold text-white bg-blue-500 rounded-md whitespace-nowrap">
@@ -193,9 +231,9 @@ const OpenEnded = ({ game }: Props) => {
             <span className="px-2 py-1 text-white rounded-lg bg-slate-800">{game.topic}</span>
           </p>
           <StartTimer 
-            key={new Date(questionStartTime).getTime()} // Reset for each question
+            key={new Date(game.currentQuestionStartTime).getTime()} // Reset for each question
             duration={QUESTION_DURATION}
-            startAt={questionStartTime}
+            startAt={game.currentQuestionStartTime}
             onTimerEnd={handleQuestionTimerEnd}
           >
             {(timeLeft) => (
@@ -210,7 +248,7 @@ const OpenEnded = ({ game }: Props) => {
       <Card className='w-full mt-4'>
         <CardHeader className='flex flex-row -items-center'>
           <CardTitle className="mr-5 text-center divide-y divide-zinc-600/50">
-            <div>{questionIndex + 1}</div>
+            <div>{game.currentQuestionIndex + 1}</div>
             <div className="text-base text-slate-400">{game.questions.length}</div>
           </CardTitle>
           <CardDescription className="flex-grow text-lg">
@@ -232,5 +270,7 @@ const OpenEnded = ({ game }: Props) => {
     </div>
   )
 }
+
+// try memo
 
 export default OpenEnded
