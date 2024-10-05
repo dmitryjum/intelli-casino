@@ -16,7 +16,7 @@ declare module 'next-auth' {
 declare module 'next-auth/jwt' {
   interface JWT {
     id: string;
-    role?: string;
+    role?: Role;
   }
 }
 
@@ -55,10 +55,13 @@ export const authOptions: NextAuthOptions = {
       clientId: process.env.GOOGLE_CLIENT_ID as string,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
       profile(profile) {
+        console.log(profile)
         return {
           id: profile.sub,
-          role: profile.role ?? Role.PLAYER,
-          ...profile,
+          name: profile.name || '',
+          email: profile.email || '',
+          image: profile.picture || '',
+          role: Role.PLAYER,
         };
       },
     })

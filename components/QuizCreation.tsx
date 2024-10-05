@@ -23,8 +23,8 @@ import { useMutation } from '@tanstack/react-query'
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import LoadingQuestions from './LoadingQuestions';
-import { useMutation as useApolloMutation } from '@apollo/client'
-import { OPEN_GAME } from '@/app/api/graphql/operations'
+// import { useMutation as useApolloMutation } from '@apollo/client'
+// import { OPEN_GAME } from '@/app/api/graphql/operations'
 import { useToast } from '@/components/ui/use-toast';
 
 type Props = {
@@ -38,21 +38,21 @@ const QuizCreation = ({ topicParam }: Props) => {
   const router = useRouter();
   const [showLoader, setShowLoader] = React.useState(false);
   const [finished, setFinished] = React.useState(false);
-  const [openGame] = useApolloMutation(OPEN_GAME, {
-    onCompleted: (data) => {
-      toast({
-        title: 'Game Opened',
-        description: `The game "${data.openGame.topic}" has been opened for bets.`,
-      })
-    },
-    onError: (error) => {
-      toast({
-        title: 'Error',
-        description: error.message,
-        variant: 'destructive'
-      })
-    }
-  });
+  // const [openGame] = useApolloMutation(OPEN_GAME, {
+  //   onCompleted: (data) => {
+  //     toast({
+  //       title: 'Game Opened',
+  //       description: `The game "${data.openGame.topic}" has been opened for bets.`,
+  //     })
+  //   },
+  //   onError: (error) => {
+  //     toast({
+  //       title: 'Error',
+  //       description: error.message,
+  //       variant: 'destructive'
+  //     })
+  //   }
+  // });
 
   const {mutate: getQuestions, isLoading} = useMutation({
     mutationFn: async ({amount, topic, type}: Input) => {
@@ -82,12 +82,12 @@ const QuizCreation = ({ topicParam }: Props) => {
       topic: input.topic,
       type: input.type,
     }, {
-      onSuccess: ({gameId}) => {
+      onSuccess: ({gameId, topic}) => {
         setFinished(true);
-        openGame({variables: { gameId } })
-        .catch((error) => {
-          console.error('Error during game opening: ', error);
-        });
+        toast({
+          title: 'Game Opened',
+          description: `The game "${topic}" has been opened for bets.`,
+        })
         setTimeout(() => {
           if (form.getValues('type') === 'open_ended') {
             router.push(`/play/open-ended/${gameId}`)

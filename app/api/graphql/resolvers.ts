@@ -28,7 +28,6 @@ const resolvers: IResolvers = {
       return activeGames;
     },
     game: async (_: any, { gameId }: { gameId: string }) => {
-      console.log("resolver query: ", gameId);
       return prisma.game.findUnique({
         where: { id: gameId },
         include: {

@@ -1,6 +1,7 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import keyword_extractor from 'keyword-extractor';
+import { useUserContext } from '@/app/context/UserContext'
 
 type Props = {
   answer: string;
@@ -10,7 +11,8 @@ type Props = {
 const BLANKS = '_____';
 
 const BlankAnswerInput = ({ answer, setBlankAnswer }: Props) => {
-  const [keywords, setKeywords] = useState<string[]>([]);
+  // const [keywords, setKeywords] = useState<string[]>([]);
+  const { userRole } = useUserContext();
   const [answerWithBlanks, setAnswerWithBlanks] = useState<string>(answer);
   console.log(answer);
   // Calculate keywords and blanks only on the client side
@@ -24,7 +26,7 @@ const BlankAnswerInput = ({ answer, setBlankAnswer }: Props) => {
     const shuffledKeywords = extractedKeywords.sort(() => Math.random() - 0.5);
     const selectedKeywords = shuffledKeywords.slice(0, 2);
 
-    setKeywords(selectedKeywords);
+    // setKeywords(selectedKeywords);
 
     const updatedAnswerWithBlanks = selectedKeywords.reduce((acc, keyword) => {
       return acc.replace(keyword, BLANKS);
@@ -39,11 +41,13 @@ const BlankAnswerInput = ({ answer, setBlankAnswer }: Props) => {
       <h1 className="text-xl font-semibold">
         {
           answerWithBlanks.split(BLANKS).map((part, index) => {
+            const isDisabled = userRole === 'SPECTATOR';
             return (
               <React.Fragment key={index}>
                 {part}
                 {index === answerWithBlanks.split(BLANKS).length - 1 ? null : (
                   <input
+                    disabled={isDisabled}
                     type="text"
                     id="user-blank-input"
                     className={"text-center border-b-2 border-black dark:border-white w-28 focus:border-2 focus:border-b-4 focus:outline-none"}
