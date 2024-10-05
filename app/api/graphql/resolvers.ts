@@ -2,6 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import { PubSub, withFilter } from 'graphql-subscriptions'
 import { IResolvers } from '@graphql-tools/utils';
 import GraphQLJSON from 'graphql-type-json';
+import { GraphQLDateTime } from 'graphql-scalars';
 
 const pubsub = new PubSub();
 const prisma = new PrismaClient();
@@ -9,6 +10,8 @@ const GAME_UPDATED = 'GAME_UPDATED';
 
 const resolvers: IResolvers = {
   JSON: GraphQLJSON,
+  DateTime: GraphQLDateTime,
+
   Query: {
     activeGames: async () => {
       const activeGames = await prisma.game.findMany({
@@ -47,12 +50,12 @@ const resolvers: IResolvers = {
       
       let updatedData: any = {
         status: 'OPEN',
-        openAt: new Date().toISOString(),
+        openAt: new Date(),
       }
 
       if (currentQuestionIndex) {
         updatedData.currentQuestionIndex = currentQuestionIndex;
-        updatedData.currentQuestionStartTime = new Date().toISOString()
+        updatedData.currentQuestionStartTime = new Date()
       }
       const updatedGame = await prisma.game.update({
         where: { id: gameId },
@@ -73,7 +76,7 @@ const resolvers: IResolvers = {
 
       if (currentQuestionIndex) {
         updatedData.currentQuestionIndex = currentQuestionIndex;
-        updatedData.currentQuestionStartTime = new Date().toISOString()
+        updatedData.currentQuestionStartTime = new Date()
       }
       const updatedGame = await prisma.game.update({
         where: { id: gameId },

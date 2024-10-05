@@ -12,7 +12,7 @@ const BLANKS = '_____';
 const BlankAnswerInput = ({ answer, setBlankAnswer }: Props) => {
   const [keywords, setKeywords] = useState<string[]>([]);
   const [answerWithBlanks, setAnswerWithBlanks] = useState<string>(answer);
-
+  console.log(answer);
   // Calculate keywords and blanks only on the client side
   useEffect(() => {
     const extractedKeywords = keyword_extractor.extract(answer, {

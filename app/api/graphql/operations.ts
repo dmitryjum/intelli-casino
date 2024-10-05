@@ -62,7 +62,7 @@ export const GAME_UPDATED = gql`
 `;
 
 export const OPEN_GAME = gql`
-  mutation OpenGame($gameId: String!, $currentQuestionStartTime: String, $currentQuestionIndex: Int) {
+  mutation OpenGame($gameId: String!, $currentQuestionStartTime: DateTime, $currentQuestionIndex: Int) {
     openGame(gameId: $gameId, currentQuestionStartTime: $currentQuestionStartTime, currentQuestionIndex: $currentQuestionIndex) {
       id
       topic
@@ -82,7 +82,7 @@ export const OPEN_GAME = gql`
 `;
 
 export const CLOSE_GAME = gql`
-  mutation CloseGame($gameId: String!, $currentQuestionStartTime: String, $currentQuestionIndex: Int) {
+  mutation CloseGame($gameId: String!, $currentQuestionStartTime: DateTime, $currentQuestionIndex: Int) {
     closeGame(gameId: $gameId, currentQuestionStartTime: $currentQuestionStartTime, currentQuestionIndex: $currentQuestionIndex) {
       id
       topic
@@ -102,7 +102,7 @@ export const CLOSE_GAME = gql`
 `;
 
 export const FINISH_GAME = gql`
-  mutation FinishGame($gameId: String!, $timeEnded: String) {
+  mutation FinishGame($gameId: String!, $timeEnded: DateTime) {
     finishGame(gameId: $gameId, timeEnded: $timeEnded) {
       id
       topic
@@ -115,7 +115,7 @@ export const FINISH_GAME = gql`
 `;
 
 export const UPDATE_GAME_QUESTION = gql`
-  mutation UpdateGameQuestion($gameId: String!, $currentQuestionStartTime: String!, $currentQuestionIndex: Int!) {
+  mutation UpdateGameQuestion($gameId: String!, $currentQuestionStartTime: DateTime!, $currentQuestionIndex: Int!) {
     updateGameQuestion(gameId: $gameId, currentQuestionStartTime: $currentQuestionStartTime, currentQuestionIndex: $currentQuestionIndex) {
       id
       currentQuestionIndex

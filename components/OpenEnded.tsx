@@ -21,24 +21,14 @@ const OPEN_DURATION = 60
 const QUESTION_DURATION = 60
 
 type Props = {
-  // game: Game & {questions: Pick<Question, 'id' | 'question' | 'answer'>[] };
   gameId: string
 };
 
 const OpenEnded = ({ gameId }: Props) => {
-  // const [questionIndex, setQuestionIndex] = React.useState<number>(game.currentQuestionIndex || 0);
   const [blankAnswer, setBlankAnswer] = React.useState<string>("");
   const [hasEnded, setHasEnded] = React.useState<boolean>(false);
   const {toast} = useToast();
   const { userRole } = useUserContext();
-  // const [gameStatus, setGameStatus] = React.useState<$Enums.GameStatus>(game.status);
-  // const [questionStartTime, setQuestionStartTime] = React.useState<Date | null>(game.currentQuestionStartTime);
-  // const [gameState, setGameState] = React.useState<GameState>({
-  //   status: game.status,
-  //   questionIndex: game.currentQuestionIndex || 0,
-  //   questionStartTime: game.currentQuestionStartTime,
-  // })
-
   
   const [closeGame] = useApolloMutation(CLOSE_GAME);
   const [finishGame] = useApolloMutation(FINISH_GAME);
@@ -82,17 +72,9 @@ const OpenEnded = ({ gameId }: Props) => {
             game: updatedGame
           }
         });
-        // setGameState({
-        //   status: updatedGame.status,
-        //   questionIndex: updatedGame.currentQuestionIndex,
-        //   questionStartTime: updatedGame.currentQuestionStartTime
-        // })
       }
     },
   });
-
-  if (loading) return <div>Loading...</div>
-  if (error) return <div>Error: {error.message}</div>
 
   const {mutate: checkAnswer, isPending: isChecking} = useMutation({
     mutationFn: async() => {
@@ -120,7 +102,7 @@ const OpenEnded = ({ gameId }: Props) => {
         })
         if (game.currentQuestionIndex === game.questions.length -1) {
           setHasEnded(true);
-          const currentTime = new Date().toISOString()
+          const currentTime = new Date()
           finishGame({variables: {gameId: game.id, timeEnded: currentTime}})
           .catch((error) => {
             console.error("Error finishing game", error);
@@ -136,7 +118,7 @@ const OpenEnded = ({ gameId }: Props) => {
           variables: {
             gameId: game.id,
             currentQuestionIndex: game.currentQuestionIndex + 1,
-            currentQuestionStartTime: new Date().toISOString(),
+            currentQuestionStartTime: new Date(),
           },
         });
       }
@@ -159,7 +141,7 @@ const OpenEnded = ({ gameId }: Props) => {
   const handleCountdownComplete = React.useCallback(() => {
     closeGame({
       variables: {
-        gameId: game.id,
+        gameId: gameId,
         currentQuestionIndex: 0
       }
     })
@@ -172,11 +154,14 @@ const OpenEnded = ({ gameId }: Props) => {
       .catch((error) => {
         console.error('Error during game closure:', error);
       });
-  }, [closeGame, toast, game.id]);
+  }, [closeGame, toast, gameId]);
 
   const handleQuestionTimerEnd = React.useCallback(() => {
     handleNext();
   }, [handleNext]);
+
+  if (loading) return <div>Loading...</div>
+  if (error) return <div>Error: {error.message}</div>
 
   if (game.status === 'OPEN') {
     return (
@@ -221,7 +206,7 @@ const OpenEnded = ({ gameId }: Props) => {
       </div>
     )
   }
-
+  
   return (
     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 md:w-[80vw] max-w-4xl w-[90wv]">
       <div className="flex flex-row justify-between">
