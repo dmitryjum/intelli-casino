@@ -115,7 +115,8 @@ const resolvers: IResolvers = {
         data: {
           status: 'FINISHED',
           openAt: null,
-          timeEnded: timeEnded
+          timeEnded: timeEnded,
+          currentQuestionStartTime: null
         },
         include: {
           questions: {

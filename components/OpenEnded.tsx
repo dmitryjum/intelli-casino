@@ -17,8 +17,8 @@ import { CLOSE_GAME, FINISH_GAME, GAME_UPDATED, UPDATE_GAME_QUESTION, GET_GAME }
 import { useMutation as useApolloMutation, useSubscription, useQuery } from '@apollo/client'
 import StartTimer from './StartTimer';
 
-const OPEN_DURATION = 10
-const QUESTION_DURATION = 20
+const OPEN_DURATION = 20
+const QUESTION_DURATION = 30
 
 type Props = {
   gameId: string
@@ -29,14 +29,14 @@ const OpenEnded = ({ gameId }: Props) => {
   const [hasEnded, setHasEnded] = React.useState<boolean>(false);
   const {toast} = useToast();
   const { userRole } = useUserContext();
- 
+  let game: Game & { questions: Pick<Question, 'id' | 'question' | 'answer'>[] };
   
   const [closeGame, {loading: closeGameLoading, error: closeGameError}] = useApolloMutation(CLOSE_GAME, {
     update(cache, {data: { closeGame }}) {
       cache.writeQuery({
         query: GET_GAME,
         variables: { gameId },
-        data: { game: closeGame }
+        data: { game: {...game, ...closeGame }}
       });
     }
   });
@@ -45,7 +45,7 @@ const OpenEnded = ({ gameId }: Props) => {
       cache.writeQuery({
         query: GET_GAME,
         variables: { gameId },
-        data: { game: finishGame }
+        data: { game: {...game, ...finishGame }}
       });
     }
   });
@@ -54,7 +54,7 @@ const OpenEnded = ({ gameId }: Props) => {
       cache.writeQuery({
         query: GET_GAME,
         variables: { gameId },
-        data: { game: updateGameQuestion }
+        data: { game: {...game, ...updateGameQuestion }}
       });
     }
   });
@@ -67,7 +67,7 @@ const OpenEnded = ({ gameId }: Props) => {
     fetchPolicy: 'cache-and-network',
   });
 
-   const game: Game & { questions: Pick<Question, 'id' | 'question' | 'answer'>[] } = {
+  game = {
     id: data?.game?.id || '', // Ensure id is a string
     userId: data?.game?.userId || '', // Ensure userId is a string
     status: data?.game?.status || $Enums.GameStatus.OPEN, // Provide a default status
@@ -84,15 +84,12 @@ const OpenEnded = ({ gameId }: Props) => {
   const currentQuestion = React.useMemo(() => {
     return game.questions[game.currentQuestionIndex] || { question: "No question available"}
   }, [game.currentQuestionIndex, game.questions]);
-  console.log("DATA: ", data)
-  console.log("GAME: ", game)
-  console.log("current question: ", currentQuestion);
 
   useSubscription<{ gameUpdated: Game & { questions: Pick<Question, 'id' | 'question' | 'answer'>[] }}>(GAME_UPDATED, {
     variables: { gameId },
     onData: ({ client, data }) => {
       if (!data) return;
-      const updatedGame = data.data?.gameUpdated;
+      const updatedGame = {...game, ...data.data?.gameUpdated};
       if (updatedGame) {
         client.writeQuery({
           query: GET_GAME,
@@ -245,7 +242,7 @@ const OpenEnded = ({ gameId }: Props) => {
             <span className="px-2 py-1 text-white rounded-lg bg-slate-800">{game.topic}</span>
           </p>
           <StartTimer 
-            key={new Date(game.currentQuestionStartTime).getTime()} // Reset for each question
+            key={new Date(game.timeStarted).getTime()} // Reset for each question
             duration={QUESTION_DURATION}
             startAt={game.currentQuestionStartTime}
             onTimerEnd={handleQuestionTimerEnd}
