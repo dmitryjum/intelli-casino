@@ -17,8 +17,8 @@ import { CLOSE_GAME, FINISH_GAME, GAME_UPDATED, UPDATE_GAME_QUESTION, GET_GAME }
 import { useMutation as useApolloMutation, useSubscription, useQuery } from '@apollo/client'
 import StartTimer from './StartTimer';
 
-const OPEN_DURATION = 60
-const QUESTION_DURATION = 60
+const OPEN_DURATION = 10
+const QUESTION_DURATION = 20
 
 type Props = {
   gameId: string
@@ -29,17 +29,45 @@ const OpenEnded = ({ gameId }: Props) => {
   const [hasEnded, setHasEnded] = React.useState<boolean>(false);
   const {toast} = useToast();
   const { userRole } = useUserContext();
+ 
   
-  const [closeGame] = useApolloMutation(CLOSE_GAME);
-  const [finishGame] = useApolloMutation(FINISH_GAME);
-  const [updateGameQuestion] = useApolloMutation(UPDATE_GAME_QUESTION);
+  const [closeGame, {loading: closeGameLoading, error: closeGameError}] = useApolloMutation(CLOSE_GAME, {
+    update(cache, {data: { closeGame }}) {
+      cache.writeQuery({
+        query: GET_GAME,
+        variables: { gameId },
+        data: { game: closeGame }
+      });
+    }
+  });
+  const [finishGame, {loading: finishGameLoading, error: finishGameError}] = useApolloMutation(FINISH_GAME, {
+    update(cache, {data: { finishGame }}) {
+      cache.writeQuery({
+        query: GET_GAME,
+        variables: { gameId },
+        data: { game: finishGame }
+      });
+    }
+  });
+  const [updateGameQuestion, {loading: updateGameQuestionLoading, error: updateGameQuestionError}] = useApolloMutation(UPDATE_GAME_QUESTION, {
+    update(cache, {data: { updateGameQuestion }}) {
+      cache.writeQuery({
+        query: GET_GAME,
+        variables: { gameId },
+        data: { game: updateGameQuestion }
+      });
+    }
+  });
+
+  const isMutating = closeGameLoading || finishGameLoading || updateGameQuestionLoading
+  const mutationError = closeGameError || finishGameError || updateGameQuestionError
   
   const { data, loading, error } = useQuery<{ game: Game & { questions: Pick<Question, 'id' | 'question' | 'answer'>[] } }>(GET_GAME, {
     variables: { gameId },
     fetchPolicy: 'cache-and-network',
   });
 
-  const game: Game & { questions: Pick<Question, 'id' | 'question' | 'answer'>[] } = {
+   const game: Game & { questions: Pick<Question, 'id' | 'question' | 'answer'>[] } = {
     id: data?.game?.id || '', // Ensure id is a string
     userId: data?.game?.userId || '', // Ensure userId is a string
     status: data?.game?.status || $Enums.GameStatus.OPEN, // Provide a default status
@@ -160,8 +188,9 @@ const OpenEnded = ({ gameId }: Props) => {
     handleNext();
   }, [handleNext]);
 
-  if (loading) return <div>Loading...</div>
+  if (loading || isMutating) return <div>Loading...</div>
   if (error) return <div>Error: {error.message}</div>
+  if (mutationError) return <div>Error: {mutationError.message}</div>
 
   if (game.status === 'OPEN') {
     return (
@@ -242,7 +271,11 @@ const OpenEnded = ({ gameId }: Props) => {
         </CardHeader>
       </Card>
       <div className="flex flex-col items-center justify-center w-full mt-4">
-        <BlankAnswerInput answer={currentQuestion.answer} setBlankAnswer={setBlankAnswer}/>
+        {currentQuestion && currentQuestion.answer ? (
+          <BlankAnswerInput answer={currentQuestion.answer} setBlankAnswer={setBlankAnswer} />
+        ) : (
+          <div className="text-red-500">Question data is unavailable.</div>
+        )}
         {userRole === "PLAYER" && (
           <Button className='mt-2' disabled={isChecking} onClick={() => {
             handleNext();
@@ -258,4 +291,4 @@ const OpenEnded = ({ gameId }: Props) => {
 
 // try memo
 
-export default OpenEnded
+export default React.memo(OpenEnded);

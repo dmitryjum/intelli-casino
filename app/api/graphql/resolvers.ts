@@ -53,13 +53,23 @@ const resolvers: IResolvers = {
         openAt: new Date(),
       }
 
-      if (currentQuestionIndex) {
+      if (currentQuestionIndex !== undefined) {
         updatedData.currentQuestionIndex = currentQuestionIndex;
         updatedData.currentQuestionStartTime = new Date()
       }
       const updatedGame = await prisma.game.update({
         where: { id: gameId },
         data: updatedData,
+        include: {
+          questions: {
+            select: {
+              id: true,
+              question: true,
+              options: true,
+              answer: true
+            }
+          }
+        }
       });
 
       // publish to pubsub
@@ -74,13 +84,23 @@ const resolvers: IResolvers = {
         openAt: null,
       }
 
-      if (currentQuestionIndex) {
+      if (currentQuestionIndex !== undefined) {
         updatedData.currentQuestionIndex = currentQuestionIndex;
         updatedData.currentQuestionStartTime = new Date()
       }
       const updatedGame = await prisma.game.update({
         where: { id: gameId },
         data: updatedData,
+        include: {
+          questions: {
+            select: {
+              id: true,
+              question: true,
+              options: true,
+              answer: true
+            }
+          }
+        }
       });
 
 
@@ -97,6 +117,16 @@ const resolvers: IResolvers = {
           openAt: null,
           timeEnded: timeEnded
         },
+        include: {
+          questions: {
+            select: {
+              id: true,
+              question: true,
+              options: true,
+              answer: true
+            }
+          }
+        }
       })
 
       // publish to pubsub
@@ -109,8 +139,18 @@ const resolvers: IResolvers = {
         where: { id: gameId },
         data: {
           currentQuestionIndex: currentQuestionIndex,
-          currentQuestionStartTime: currentQuestionStartTime,
+          currentQuestionStartTime: new Date(currentQuestionStartTime),
         },
+        include: {
+          questions: {
+            select: {
+              id: true,
+              question: true,
+              options: true,
+              answer: true
+            }
+          }
+        }
       });
 
       pubsub.publish(GAME_UPDATED, { gameUpdated: updatedGame });

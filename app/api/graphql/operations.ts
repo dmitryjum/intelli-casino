@@ -41,7 +41,7 @@ export const GET_GAME = gql`
 export const GAME_UPDATED = gql`
   subscription onGameUpdated($gameId: String) {
     gameUpdated(gameId: $gameId) {
-      id
+     id
       status
       topic
       userId
@@ -65,12 +65,15 @@ export const OPEN_GAME = gql`
   mutation OpenGame($gameId: String!, $currentQuestionStartTime: DateTime, $currentQuestionIndex: Int) {
     openGame(gameId: $gameId, currentQuestionStartTime: $currentQuestionStartTime, currentQuestionIndex: $currentQuestionIndex) {
       id
-      topic
       status
+      topic
+      userId
       openAt
       gameType
-      currentQuestionStartTime
+      timeStarted
+      timeEnded
       currentQuestionIndex
+      currentQuestionStartTime
       questions {
         id
         question
@@ -85,12 +88,15 @@ export const CLOSE_GAME = gql`
   mutation CloseGame($gameId: String!, $currentQuestionStartTime: DateTime, $currentQuestionIndex: Int) {
     closeGame(gameId: $gameId, currentQuestionStartTime: $currentQuestionStartTime, currentQuestionIndex: $currentQuestionIndex) {
       id
-      topic
       status
+      topic
+      userId
       openAt
       gameType
-      currentQuestionStartTime
+      timeStarted
+      timeEnded
       currentQuestionIndex
+      currentQuestionStartTime
       questions {
         id
         question
@@ -118,6 +124,13 @@ export const UPDATE_GAME_QUESTION = gql`
   mutation UpdateGameQuestion($gameId: String!, $currentQuestionStartTime: DateTime!, $currentQuestionIndex: Int!) {
     updateGameQuestion(gameId: $gameId, currentQuestionStartTime: $currentQuestionStartTime, currentQuestionIndex: $currentQuestionIndex) {
       id
+      status
+      topic
+      userId
+      openAt
+      gameType
+      timeStarted
+      timeEnded
       currentQuestionIndex
       currentQuestionStartTime
       questions {
