@@ -17,9 +17,8 @@ import { useUserContext } from '@/app/context/UserContext'
 import { CLOSE_GAME, FINISH_GAME, GAME_UPDATED, UPDATE_GAME_QUESTION } from '@/app/api/graphql/operations'
 import { useMutation as useApolloMutation, useSubscription } from '@apollo/client'
 import StartTimer from './StartTimer';
+import { OPEN_DURATION, QUESTION_DURATION } from '@/lib/constants';
 
-const OPEN_DURATION = 60
-const QUESTION_DURATION = 60
 type Props = {
   game: Game & {questions: Pick<Question, 'id' | 'options' | 'question'>[]}
 }

@@ -87,6 +87,7 @@ const OpenEnded = ({ gameId }: Props) => {
     onData: ({ client, data }) => {
       if (!data) return;
       const updatedGame = {...game, ...data.data?.gameUpdated};
+      // no need to update anything if the game has just switched from open to closed
       if (updatedGame && (updatedGame.status !== 'OPEN' && game.status !== 'OPEN')) {
         client.writeQuery({
           query: GET_GAME,
@@ -94,6 +95,11 @@ const OpenEnded = ({ gameId }: Props) => {
             game: updatedGame
           }
         });
+        if (userRole === 'SPECTATOR') toast({
+            title: "Last question correct answer",
+            description: currentQuestion.answer,
+            variant: "success",
+          })
       }
     },
   });
