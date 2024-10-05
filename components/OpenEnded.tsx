@@ -16,9 +16,7 @@ import { useUserContext } from '@/app/context/UserContext'
 import { CLOSE_GAME, FINISH_GAME, GAME_UPDATED, UPDATE_GAME_QUESTION, GET_GAME } from '@/app/api/graphql/operations'
 import { useMutation as useApolloMutation, useSubscription, useQuery } from '@apollo/client'
 import StartTimer from './StartTimer';
-
-const OPEN_DURATION = 20
-const QUESTION_DURATION = 30
+import { OPEN_DURATION, QUESTION_DURATION } from '@/lib/constants';
 
 type Props = {
   gameId: string
@@ -26,7 +24,6 @@ type Props = {
 
 const OpenEnded = ({ gameId }: Props) => {
   const [blankAnswer, setBlankAnswer] = React.useState<string>("");
-  const [hasEnded, setHasEnded] = React.useState<boolean>(false);
   const {toast} = useToast();
   const { userRole } = useUserContext();
   let game: Game & { questions: Pick<Question, 'id' | 'question' | 'answer'>[] };
@@ -90,7 +87,7 @@ const OpenEnded = ({ gameId }: Props) => {
     onData: ({ client, data }) => {
       if (!data) return;
       const updatedGame = {...game, ...data.data?.gameUpdated};
-      if (updatedGame) {
+      if (updatedGame && (updatedGame.status !== 'OPEN' && game.status !== 'OPEN')) {
         client.writeQuery({
           query: GET_GAME,
           data: {
@@ -126,7 +123,6 @@ const OpenEnded = ({ gameId }: Props) => {
           description: "Answers are matched based on similarity comparisons",
         })
         if (game.currentQuestionIndex === game.questions.length -1) {
-          setHasEnded(true);
           const currentTime = new Date()
           finishGame({variables: {gameId: game.id, timeEnded: currentTime}})
           .catch((error) => {
@@ -182,7 +178,7 @@ const OpenEnded = ({ gameId }: Props) => {
   }, [closeGame, toast, gameId]);
 
   const handleQuestionTimerEnd = React.useCallback(() => {
-    handleNext();
+    if (userRole === "PLAYER") handleNext();
   }, [handleNext]);
 
   if (loading || isMutating) return <div>Loading...</div>
@@ -219,7 +215,7 @@ const OpenEnded = ({ gameId }: Props) => {
     )
   }
 
-  if (hasEnded) {
+  if (game.timeEnded) {
     return (
       <div className="absolute flex flex-col justify-center top-1/2 left-1/2 -translate-x-1/2 top-1/2 left-1/2">
         <div className="px-4 mt-2 font-semibold text-white bg-green-500 rounded-md whitespace-nowrap">
@@ -242,7 +238,7 @@ const OpenEnded = ({ gameId }: Props) => {
             <span className="px-2 py-1 text-white rounded-lg bg-slate-800">{game.topic}</span>
           </p>
           <StartTimer 
-            key={new Date(game.timeStarted).getTime()} // Reset for each question
+            key={new Date(game.currentQuestionStartTime).getTime()} // Reset for each question
             duration={QUESTION_DURATION}
             startAt={game.currentQuestionStartTime}
             onTimerEnd={handleQuestionTimerEnd}
@@ -285,7 +281,5 @@ const OpenEnded = ({ gameId }: Props) => {
     </div>
   )
 }
-
-// try memo
 
 export default React.memo(OpenEnded);

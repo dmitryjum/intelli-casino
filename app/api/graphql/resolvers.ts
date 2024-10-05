@@ -3,6 +3,7 @@ import { PubSub, withFilter } from 'graphql-subscriptions'
 import { IResolvers } from '@graphql-tools/utils';
 import GraphQLJSON from 'graphql-type-json';
 import { GraphQLDateTime } from 'graphql-scalars';
+import { OPEN_DURATION } from '@/lib/constants';
 
 const pubsub = new PubSub();
 const prisma = new PrismaClient();
@@ -54,7 +55,7 @@ const resolvers: IResolvers = {
 
       if (currentQuestionIndex !== undefined) {
         updatedData.currentQuestionIndex = currentQuestionIndex;
-        updatedData.currentQuestionStartTime = new Date()
+        updatedData.currentQuestionStartTime = new Date(new Date(updatedData.openAt).getTime() + OPEN_DURATION * 1000)
       }
       const updatedGame = await prisma.game.update({
         where: { id: gameId },
