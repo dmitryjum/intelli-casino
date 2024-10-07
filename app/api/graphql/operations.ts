@@ -112,10 +112,20 @@ export const FINISH_GAME = gql`
     finishGame(gameId: $gameId, timeEnded: $timeEnded) {
       id
       topic
+      userId
       status
       openAt
       gameType
+      timeStarted
       timeEnded
+      currentQuestionIndex
+      currentQuestionStartTime
+      questions {
+        id
+        question
+        options
+        answer
+      }
     }
   }
 `;

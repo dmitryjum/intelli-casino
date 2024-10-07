@@ -1,6 +1,6 @@
 'use client';
 import { cn, formatTimeDelta } from '@/lib/utils';
-import { $Enums, Game, Question } from '@prisma/client'
+import { GameStatus, GameType, Role, Game, Question } from '@prisma/client'
 import { BarChart, ChevronRight, Loader2, Timer } from 'lucide-react';
 import React from 'react'
 import { Card, CardDescription, CardHeader, CardTitle } from './ui/card';
@@ -12,97 +12,40 @@ import { checkAnswerSchema } from '@/schemas/form/quiz';
 import axios from 'axios';
 import BlankAnswerInput from './BlankAnswerInput';
 import Link from 'next/link';
-import { useUserContext } from '@/app/context/UserContext'
-import { CLOSE_GAME, FINISH_GAME, GAME_UPDATED, UPDATE_GAME_QUESTION, GET_GAME } from '@/app/api/graphql/operations'
-import { useMutation as useApolloMutation, useSubscription, useQuery } from '@apollo/client'
+import { useUserContext } from '@/app/context/UserContext';
 import StartTimer from './StartTimer';
 import { OPEN_DURATION, QUESTION_DURATION } from '@/lib/constants';
+import { useGames } from '@/app/hooks/useGames';
 
 type Props = {
   gameId: string
 };
 
 const OpenEnded = ({ gameId }: Props) => {
+  const { userRole } = useUserContext();
+  const { gameData, loading, error, closeGame, finishGame, updateGameQuestion } = useGames({ gameId, userRole });
   const [blankAnswer, setBlankAnswer] = React.useState<string>("");
   const {toast} = useToast();
-  const { userRole } = useUserContext();
+  
   let game: Game & { questions: Pick<Question, 'id' | 'question' | 'answer'>[] };
-  
-  const [closeGame, {loading: closeGameLoading, error: closeGameError}] = useApolloMutation(CLOSE_GAME, {
-    update(cache, {data: { closeGame }}) {
-      cache.writeQuery({
-        query: GET_GAME,
-        variables: { gameId },
-        data: { game: {...game, ...closeGame }}
-      });
-    }
-  });
-  const [finishGame, {loading: finishGameLoading, error: finishGameError}] = useApolloMutation(FINISH_GAME, {
-    update(cache, {data: { finishGame }}) {
-      cache.writeQuery({
-        query: GET_GAME,
-        variables: { gameId },
-        data: { game: {...game, ...finishGame }}
-      });
-    }
-  });
-  const [updateGameQuestion, {loading: updateGameQuestionLoading, error: updateGameQuestionError}] = useApolloMutation(UPDATE_GAME_QUESTION, {
-    update(cache, {data: { updateGameQuestion }}) {
-      cache.writeQuery({
-        query: GET_GAME,
-        variables: { gameId },
-        data: { game: {...game, ...updateGameQuestion }}
-      });
-    }
-  });
-
-  const isMutating = closeGameLoading || finishGameLoading || updateGameQuestionLoading
-  const mutationError = closeGameError || finishGameError || updateGameQuestionError
-  
-  const { data, loading, error } = useQuery<{ game: Game & { questions: Pick<Question, 'id' | 'question' | 'answer'>[] } }>(GET_GAME, {
-    variables: { gameId },
-    fetchPolicy: 'cache-and-network',
-  });
 
   game = {
-    id: data?.game?.id || '', // Ensure id is a string
-    userId: data?.game?.userId || '', // Ensure userId is a string
-    status: data?.game?.status || $Enums.GameStatus.OPEN, // Provide a default status
-    openAt: data?.game?.openAt || null, // Keep as is
-    timeStarted: data?.game?.timeStarted || new Date(), // Provide a default date
-    topic: data?.game?.topic || '', // Ensure topic is a string
-    timeEnded: data?.game?.timeEnded || null, // Keep as is
-    gameType: data?.game?.gameType || $Enums.GameType.open_ended, // Provide a default gameType
-    currentQuestionIndex: data?.game?.currentQuestionIndex || 0, // Provide a default index
-    currentQuestionStartTime: data?.game?.currentQuestionStartTime || null, // Keep as is
-    questions: (data?.game as { questions?: any[] })?.questions || []
+    id: gameData?.id || '', // Ensure id is a string
+    userId: gameData?.userId || '', // Ensure userId is a string
+    status: gameData?.status || GameStatus.OPEN, // Provide a default status
+    openAt: gameData?.openAt || null, // Keep as is
+    timeStarted: gameData?.timeStarted || new Date(), // Provide a default date
+    topic: gameData?.topic || '', // Ensure topic is a string
+    timeEnded: gameData?.timeEnded || null, // Keep as is
+    gameType: gameData?.gameType || GameType.open_ended, // Provide a default gameType
+    currentQuestionIndex: gameData?.currentQuestionIndex || 0, // Provide a default index
+    currentQuestionStartTime: gameData?.currentQuestionStartTime || null, // Keep as is
+    questions: (gameData as { questions?: any[] })?.questions || []
   }
   
   const currentQuestion = React.useMemo(() => {
     return game.questions[game.currentQuestionIndex] || { question: "No question available"}
   }, [game.currentQuestionIndex, game.questions]);
-
-  useSubscription<{ gameUpdated: Game & { questions: Pick<Question, 'id' | 'question' | 'answer'>[] }}>(GAME_UPDATED, {
-    variables: { gameId },
-    onData: ({ client, data }) => {
-      if (!data) return;
-      const updatedGame = {...game, ...data.data?.gameUpdated};
-      // no need to update anything if the game has just switched from open to closed
-      if (updatedGame && (updatedGame.status !== 'OPEN' && game.status !== 'OPEN')) {
-        client.writeQuery({
-          query: GET_GAME,
-          data: {
-            game: updatedGame
-          }
-        });
-        if (userRole === 'SPECTATOR') toast({
-            title: "Last question correct answer",
-            description: currentQuestion.answer,
-            variant: "success",
-          })
-      }
-    },
-  });
 
   const {mutate: checkAnswer, isPending: isChecking} = useMutation({
     mutationFn: async() => {
@@ -184,14 +127,13 @@ const OpenEnded = ({ gameId }: Props) => {
   }, [closeGame, toast, gameId]);
 
   const handleQuestionTimerEnd = React.useCallback(() => {
-    if (userRole === "PLAYER") handleNext();
+    if (userRole === Role.PLAYER) handleNext();
   }, [handleNext]);
 
-  if (loading || isMutating) return <div>Loading...</div>
+  if (loading) return <div>Loading...</div>
   if (error) return <div>Error: {error.message}</div>
-  if (mutationError) return <div>Error: {mutationError.message}</div>
 
-  if (game.status === 'OPEN') {
+  if (game.status === GameStatus.OPEN) {
     return (
       <div className="absolute flex flex-col justify-center top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
         <div className="px-4 mt-2 font-semibold text-white bg-blue-500 rounded-md whitespace-nowrap">
@@ -275,7 +217,7 @@ const OpenEnded = ({ gameId }: Props) => {
         ) : (
           <div className="text-red-500">Question data is unavailable.</div>
         )}
-        {userRole === "PLAYER" && (
+        {userRole === Role.PLAYER && (
           <Button className='mt-2' disabled={isChecking} onClick={() => {
             handleNext();
           }}>

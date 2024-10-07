@@ -1,5 +1,5 @@
 'use client'
-import { $Enums, Game, Question } from '@prisma/client'
+import { Role, GameStatus, Game, Question } from '@prisma/client'
 import { differenceInSeconds } from 'date-fns'
 import { BarChart, ChevronRight, Loader2, Timer } from 'lucide-react'
 import React from 'react'
@@ -32,7 +32,7 @@ const MCQ = ({game}: Props) => {
   const {toast} = useToast();
   const { userRole } = useUserContext();
   const [now, setNow] = React.useState<Date>(new Date());
-  const [gameStatus, setGameStatus] = React.useState<$Enums.GameStatus>(game.status);
+  const [gameStatus, setGameStatus] = React.useState<GameStatus>(game.status);
   const [questionStartTime, setQuestionStartTime] = React.useState(game.currentQuestionStartTime);
   const [closeGame] = useApolloMutation(CLOSE_GAME);
   const [finishGame] = useApolloMutation(FINISH_GAME);
@@ -249,7 +249,7 @@ const MCQ = ({game}: Props) => {
             </Button>
           )
         })}
-        {userRole === "PLAYER" && (
+        {userRole === Role.PLAYER && (
           <Button className='mt-2' disabled={isChecking} onClick={() => {
             handleNext();
           }}>
