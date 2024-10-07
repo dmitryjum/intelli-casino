@@ -2,7 +2,7 @@ import SignInButton from '@/components/SignInButton';
 import { getAuthSession } from '@/lib/nextauth';
 import { redirect } from 'next/navigation';
 import Link from "next/link"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Brain, Clock, Users, TrendingUp, Coins, Eye, Wallet } from "lucide-react"
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
