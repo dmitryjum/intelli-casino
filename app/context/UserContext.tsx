@@ -22,7 +22,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   return (
     <UserContext.Provider value={{ userRole, setUserRole }}>
       {session?.user && <Navbar user={session?.user} /> }
-      {children}
+      <main className={session?.user && "mt-16"}>{children}</main>
     </UserContext.Provider>
   )
 }
