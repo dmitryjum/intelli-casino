@@ -18,17 +18,15 @@ export default async function Home() {
           <Brain className="h-6 w-6 mr-2" />
           <span className="font-bold">Intelli Casino</span>
         </Link>
-        {/* <nav className="ml-auto flex gap-4 sm:gap-6">
-          <Link className="text-sm font-medium hover:underline underline-offset-4" href="#features">
+        <nav className="ml-auto flex gap-4 sm:gap-6">
+          {/* <Link className="text-sm font-medium hover:underline underline-offset-4" href="#features">
             Features
           </Link>
           <Link className="text-sm font-medium hover:underline underline-offset-4" href="#how-it-works">
             How It Works
-          </Link>
-          <Link className="text-sm font-medium hover:underline underline-offset-4" href="#join">
-            Join Now
-          </Link>
-        </nav> */}
+          </Link> */}
+          <SignInButton text={"Sign In"}  variant="ghost"/>
+        </nav>
       </header>
       <main className="flex-1">
         <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48 bg-black text-white">

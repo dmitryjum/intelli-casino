@@ -9,7 +9,6 @@ interface SignInButtonProps extends ButtonProps {
 }
 
 const SignInButton: React.FC<SignInButtonProps> = ({text, ...props}) => {
-  console.log(props);
   return (
     <Button onClick={() => {
       signIn("google").catch(console.error)
