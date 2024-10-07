@@ -23,7 +23,6 @@ const ActiveGames = (props: Props) => {
       const updatedGame = data.data?.gameUpdated;
       if (!updatedGame) return;
       const gameIndex = activeGames.findIndex(game => game.id === updatedGame.id);
-
       if (gameIndex > -1 && updatedGame.status !== 'FINISHED') {
         const updatedActiveGames = [...activeGames];
         updatedActiveGames[gameIndex] = updatedGame;

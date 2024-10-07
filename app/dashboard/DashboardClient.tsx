@@ -7,9 +7,10 @@ import HistoryCard from './HistoryCard';
 import ActiveGames from './ActiveGames';
 import { useUserContext } from '@/app/context/UserContext'
 import { useEffect } from 'react'
+import { Role } from '@prisma/client';
 
 type Props = {
-  initialRole: string
+  initialRole: Role
 }
 
 const Dashboard = (props: Props) => {
@@ -25,7 +26,7 @@ const Dashboard = (props: Props) => {
         <h2 className="mr-2 text-3xl font-bold tracking-tight">Dashboard</h2>
       </div>
       <div className="grid gap-4 mt-4 md:grid-cols-2">
-        {userRole === "PLAYER" && <QuizMeCard />}
+        {userRole === Role.PLAYER && <QuizMeCard />}
         <HistoryCard />
       </div>
       <div className="grid gap-4 mt-4 md:grid-cols-2 lg:grid-cols-7">

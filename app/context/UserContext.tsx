@@ -2,16 +2,18 @@
 import React, { createContext, useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import Navbar from '@/components/Navbar'
+import { Role } from '@prisma/client';
+import { UserContextType } from './UserContext.d'
 
-export const UserContext = createContext({
-  userRole: 'PLAYER',
-  setUserRole: (role: string) => { },
+export const UserContext = createContext<UserContextType>({
+  userRole: Role.PLAYER,
+  setUserRole: () => { },
 })
 
 export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const { data: session } = useSession()
-  const [userRole, setUserRole] = useState(session?.user?.role || 'PLAYER')
-  
+  const [userRole, setUserRole] = useState(session?.user?.role || Role.PLAYER)
+
   useEffect(() => {
     if (session?.user?.role) {
       setUserRole(session.user.role)
@@ -20,7 +22,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   return (
     <UserContext.Provider value={{ userRole, setUserRole }}>
       {session?.user && <Navbar user={session?.user} /> }
-      {children}
+      <main className={session?.user && "mt-16"}>{children}</main>
     </UserContext.Provider>
   )
 }

@@ -1,6 +1,6 @@
 'use client';
 import { cn, formatTimeDelta } from '@/lib/utils';
-import { $Enums, Game, Question } from '@prisma/client'
+import { GameStatus, GameType, Role, Game, Question } from '@prisma/client'
 import { BarChart, ChevronRight, Loader2, Timer } from 'lucide-react';
 import React from 'react'
 import { Card, CardDescription, CardHeader, CardTitle } from './ui/card';
@@ -12,43 +12,40 @@ import { checkAnswerSchema } from '@/schemas/form/quiz';
 import axios from 'axios';
 import BlankAnswerInput from './BlankAnswerInput';
 import Link from 'next/link';
-import { useUserContext } from '@/app/context/UserContext'
-import { CLOSE_GAME, FINISH_GAME, GAME_UPDATED } from '@/app/api/graphql/operations'
-import { useMutation as useApolloMutation, useSubscription } from '@apollo/client'
+import { useUserContext } from '@/app/context/UserContext';
 import StartTimer from './StartTimer';
-
-const OPEN_DURATION = 60
-const QUESTION_DURATION = 60
+import { OPEN_DURATION, QUESTION_DURATION } from '@/lib/constants';
+import { useGames } from '@/app/hooks/useGames';
 
 type Props = {
-  game: Game & {questions: Pick<Question, 'id' | 'question' | 'answer'>[] };
+  gameId: string
 };
 
-const OpenEnded = ({ game }: Props) => {
-  const [questionIndex, setQuestionIndex] = React.useState(0);
-  const [blankAnswer, setBlankAnswer] = React.useState<string>("");
-  const [hasEnded, setHasEnded] = React.useState<boolean>(false);
-  const {toast} = useToast();
+const OpenEnded = ({ gameId }: Props) => {
   const { userRole } = useUserContext();
-  const [gameStatus, setGameStatus] = React.useState<$Enums.GameStatus>(game.status);
-  const [questionStartTime, setQuestionStartTime] = React.useState(new Date());
+  const { gameData, loading, error, closeGame, finishGame, updateGameQuestion } = useGames({ gameId, userRole });
+  const [blankAnswer, setBlankAnswer] = React.useState<string>("");
+  const {toast} = useToast();
+  
+  let game: Game & { questions: Pick<Question, 'id' | 'question' | 'answer'>[] };
 
+  game = {
+    id: gameData?.id || '', // Ensure id is a string
+    userId: gameData?.userId || '', // Ensure userId is a string
+    status: gameData?.status || GameStatus.OPEN, // Provide a default status
+    openAt: gameData?.openAt || null, // Keep as is
+    timeStarted: gameData?.timeStarted || new Date(), // Provide a default date
+    topic: gameData?.topic || '', // Ensure topic is a string
+    timeEnded: gameData?.timeEnded || null, // Keep as is
+    gameType: gameData?.gameType || GameType.open_ended, // Provide a default gameType
+    currentQuestionIndex: gameData?.currentQuestionIndex || 0, // Provide a default index
+    currentQuestionStartTime: gameData?.currentQuestionStartTime || null, // Keep as is
+    questions: (gameData as { questions?: any[] })?.questions || []
+  }
+  
   const currentQuestion = React.useMemo(() => {
-    return game.questions[questionIndex]
-  }, [questionIndex, game.questions]);
-
-  const [closeGame] = useApolloMutation(CLOSE_GAME);
-  const [finishGame] = useApolloMutation(FINISH_GAME);
-
-  useSubscription<{ gameUpdated: Game }>(GAME_UPDATED, {
-    variables: { gameId: game.id },
-    onData: ({ data }) => {
-      const updatedGame = data.data?.gameUpdated;
-      if (updatedGame) {
-        setGameStatus(updatedGame.status);
-      }
-    },
-  });
+    return game.questions[game.currentQuestionIndex] || { question: "No question available"}
+  }, [game.currentQuestionIndex, game.questions]);
 
   const {mutate: checkAnswer, isPending: isChecking} = useMutation({
     mutationFn: async() => {
@@ -74,9 +71,8 @@ const OpenEnded = ({ game }: Props) => {
           title: `Your answer is ${percentageSimilar}% similar to the correct answer`,
           description: "Answers are matched based on similarity comparisons",
         })
-        if (questionIndex === game.questions.length -1) {
-          setHasEnded(true);
-          const currentTime = new Date().toISOString()
+        if (game.currentQuestionIndex === game.questions.length -1) {
+          const currentTime = new Date()
           finishGame({variables: {gameId: game.id, timeEnded: currentTime}})
           .catch((error) => {
             console.error("Error finishing game", error);
@@ -88,11 +84,16 @@ const OpenEnded = ({ game }: Props) => {
           })
           return;
         }
-        setQuestionIndex((prev) => prev + 1);
-        setQuestionStartTime(new Date());
+        updateGameQuestion({
+          variables: {
+            gameId: game.id,
+            currentQuestionIndex: game.currentQuestionIndex + 1,
+            currentQuestionStartTime: new Date(),
+          },
+        });
       }
     })
-  }, [checkAnswer, toast, isChecking, questionIndex, game.questions.length, finishGame, game.id]);
+  }, [checkAnswer, toast, isChecking, game.currentQuestionIndex, game.questions.length, finishGame, game.id]);
 
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -108,7 +109,12 @@ const OpenEnded = ({ game }: Props) => {
   }, [handleNext]);
 
   const handleCountdownComplete = React.useCallback(() => {
-    closeGame({ variables: { gameId: game.id } })
+    closeGame({
+      variables: {
+        gameId: gameId,
+        currentQuestionIndex: 0
+      }
+    })
       .then(() => {
         toast({
           title: 'Game Closed',
@@ -118,13 +124,16 @@ const OpenEnded = ({ game }: Props) => {
       .catch((error) => {
         console.error('Error during game closure:', error);
       });
-  }, [closeGame, toast, game.id]);
+  }, [closeGame, toast, gameId]);
 
   const handleQuestionTimerEnd = React.useCallback(() => {
-    handleNext();
+    if (userRole === Role.PLAYER) handleNext();
   }, [handleNext]);
 
-  if (gameStatus === 'OPEN') {
+  if (loading) return <div>Loading...</div>
+  if (error) return <div>Error: {error.message}</div>
+
+  if (game.status === GameStatus.OPEN) {
     return (
       <div className="absolute flex flex-col justify-center top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
         <div className="px-4 mt-2 font-semibold text-white bg-blue-500 rounded-md whitespace-nowrap">
@@ -154,7 +163,7 @@ const OpenEnded = ({ game }: Props) => {
     )
   }
 
-  if (hasEnded) {
+  if (game.timeEnded) {
     return (
       <div className="absolute flex flex-col justify-center top-1/2 left-1/2 -translate-x-1/2 top-1/2 left-1/2">
         <div className="px-4 mt-2 font-semibold text-white bg-green-500 rounded-md whitespace-nowrap">
@@ -167,7 +176,7 @@ const OpenEnded = ({ game }: Props) => {
       </div>
     )
   }
-
+  
   return (
     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 md:w-[80vw] max-w-4xl w-[90wv]">
       <div className="flex flex-row justify-between">
@@ -177,8 +186,9 @@ const OpenEnded = ({ game }: Props) => {
             <span className="px-2 py-1 text-white rounded-lg bg-slate-800">{game.topic}</span>
           </p>
           <StartTimer 
-            key={questionStartTime.getTime()} // Reset for each question
+            key={new Date(game.currentQuestionStartTime).getTime()} // Reset for each question
             duration={QUESTION_DURATION}
+            startAt={game.currentQuestionStartTime}
             onTimerEnd={handleQuestionTimerEnd}
           >
             {(timeLeft) => (
@@ -193,7 +203,7 @@ const OpenEnded = ({ game }: Props) => {
       <Card className='w-full mt-4'>
         <CardHeader className='flex flex-row -items-center'>
           <CardTitle className="mr-5 text-center divide-y divide-zinc-600/50">
-            <div>{questionIndex + 1}</div>
+            <div>{game.currentQuestionIndex + 1}</div>
             <div className="text-base text-slate-400">{game.questions.length}</div>
           </CardTitle>
           <CardDescription className="flex-grow text-lg">
@@ -202,8 +212,12 @@ const OpenEnded = ({ game }: Props) => {
         </CardHeader>
       </Card>
       <div className="flex flex-col items-center justify-center w-full mt-4">
-        <BlankAnswerInput answer={currentQuestion.answer} setBlankAnswer={setBlankAnswer}/>
-        {userRole === "PLAYER" && (
+        {currentQuestion && currentQuestion.answer ? (
+          <BlankAnswerInput answer={currentQuestion.answer} setBlankAnswer={setBlankAnswer} />
+        ) : (
+          <div className="text-red-500">Question data is unavailable.</div>
+        )}
+        {userRole === Role.PLAYER && (
           <Button className='mt-2' disabled={isChecking} onClick={() => {
             handleNext();
           }}>
@@ -216,4 +230,4 @@ const OpenEnded = ({ game }: Props) => {
   )
 }
 
-export default OpenEnded
+export default React.memo(OpenEnded);

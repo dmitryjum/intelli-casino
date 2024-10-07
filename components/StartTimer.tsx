@@ -38,6 +38,5 @@ export default function StartTimer({ duration, startAt, onTimerEnd, children }: 
     
     return () => clearInterval(intervalId)
   }, [onTimerEnd])
-
   return <>{children(timeLeft)}</>
 }

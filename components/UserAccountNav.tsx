@@ -1,6 +1,5 @@
 'use client'
 import { User } from "next-auth";
-// import { useState, useContext } from 'react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
 import { signOut } from 'next-auth/react';
 import { LogOut } from "lucide-react";

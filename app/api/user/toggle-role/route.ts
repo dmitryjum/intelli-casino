@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db"
+import { Role } from "@prisma/client";
 import { getAuthSession } from "@/lib/nextauth"
 import { NextResponse } from "next/server"
 import { ZodError } from "zod";
@@ -24,7 +25,7 @@ export async function POST() {
       )
     }
 
-    const newRole = user.role === "PLAYER" ? "SPECTATOR" : "PLAYER"
+    const newRole = user.role === Role.PLAYER ? Role.SPECTATOR : Role.PLAYER
 
     const updatedUser = await prisma.user.update({
       where: { id: user.id },

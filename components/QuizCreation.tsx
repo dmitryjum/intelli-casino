@@ -82,9 +82,12 @@ const QuizCreation = ({ topicParam }: Props) => {
       topic: input.topic,
       type: input.type,
     }, {
-      onSuccess: ({gameId}) => {
+      onSuccess: ({gameId, topic}) => {
         setFinished(true);
-        openGame({variables: {gameId}});
+        openGame({variables: { gameId } })
+        .catch((error) => {
+          console.error('Error during game opening: ', error);
+        });
         setTimeout(() => {
           if (form.getValues('type') === 'open_ended') {
             router.push(`/play/open-ended/${gameId}`)
