@@ -14,7 +14,7 @@ const Providers = ({ children, ...props }: ThemeProviderProps) => {
   return (
     <QueryClientProvider client={queryClient}>
       {/* we need query provider to cache and reuse data */}
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem {...props}>
+      <ThemeProvider attribute="class" defaultTheme="light" enableSystem {...props}>
         <SessionProvider>
           <ApolloProvider client={client}>
             <UserProvider>
