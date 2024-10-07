@@ -2,8 +2,10 @@ import SignInButton from '@/components/SignInButton';
 import { getAuthSession } from '@/lib/nextauth';
 import { redirect } from 'next/navigation';
 import Link from "next/link"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Brain, Clock, Users, TrendingUp, Coins, Eye } from "lucide-react"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Brain, Clock, Users, TrendingUp, Coins, Eye, Wallet } from "lucide-react"
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 
 export default async function Home() {
   const session = await getAuthSession()
@@ -106,6 +108,78 @@ export default async function Home() {
                 <p className="text-gray-500">Participate as a player or enjoy the game as a spectator.</p>
               </div>
             </div>
+          </div>
+        </section>
+        <section className="w-full py-12 md:py-24 lg:py-32 bg-gray-100">
+          <div className="container px-4 md:px-6">
+            <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl text-center mb-12">ETH Betting System</h2>
+            <div className="grid gap-6 lg:grid-cols-2 lg:gap-12">
+              <Card>
+                <CardHeader>
+                  <Wallet className="h-8 w-8 mb-2" />
+                  <CardTitle>Smart Contract Betting</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>Our ETH smart contract ensures secure and transparent betting. The contract manages game creation, bet placement, and winnings distribution.</p>
+                  <ul className="list-disc list-inside mt-4">
+                    <li>Secure transactions using Ethereum blockchain</li>
+                    <li>Automated winnings distribution</li>
+                    <li>Fair and transparent betting system</li>
+                  </ul>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>How Betting Works</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ol className="list-decimal list-inside space-y-2">
+                    <li>Connect your Ethereum wallet</li>
+                    <li>Choose to bet on the player or the house</li>
+                    <li>Place your bet during the open betting period</li>
+                    <li>Watch the game unfold</li>
+                    <li>Winnings are automatically distributed after the game</li>
+                    <li>Option to withdraw your bet before the game closes</li>
+                  </ol>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </section>
+        <section className="w-full py-12 md:py-24 lg:py-32">
+          <div className="container px-4 md:px-6">
+            <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl text-center mb-12">Sample Quizzes</h2>
+            <Card className="w-full max-w-3xl mx-auto">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <div className="flex items-center space-x-2">
+                  <Badge variant="secondary" className="bg-gray-900 text-white hover:bg-gray-900">
+                    cosmos
+                  </Badge>
+                  <div className="flex items-center text-sm text-muted-foreground">
+                    <Clock className="mr-1 h-4 w-4" />
+                    <span>38s</span>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-4xl font-bold">1</span>
+                    <span className="text-2xl text-muted-foreground">/</span>
+                    <span className="text-2xl text-muted-foreground">3</span>
+                  </div>
+                  <p className="text-xl">
+                    What mysteries of the cosmos have yet to be unraveled by humanity?
+                  </p>
+                </div>
+              </CardContent>
+              <CardFooter className="flex justify-between items-center">
+                <div className="w-full h-1 bg-gray-200 rounded-full">
+                  <div className="w-1/3 h-full bg-primary rounded-full" />
+                </div>
+                <Button className="ml-4">Next</Button>
+              </CardFooter>
+            </Card>
           </div>
         </section>
         <section id="join" className="w-full py-12 md:py-24 lg:py-32 bg-gray-100">
