@@ -1,16 +1,18 @@
 "use client";
 
 import React from 'react'
-import { Button } from './ui/button';
+import { Button, ButtonProps } from './ui/button';
 import { signIn } from 'next-auth/react';
 
 type Props = {
-  text: string
+  text: string,
+  styles?: string,
+  variant: string
 }
 
-const SignInButton = ({text}: Props) => {
+const SignInButton = ({text, styles, variant}: Props) => {
   return (
-    <Button onClick={() => {
+    <Button className={styles} variant={variant} onClick={() => {
       signIn("google").catch(console.error)
     }}>
       {text}
