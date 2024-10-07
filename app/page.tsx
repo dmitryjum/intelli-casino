@@ -1,4 +1,4 @@
-import SignInButton from '@/components/SignInButton';
+// import SignInButton from '@/components/SignInButton';
 import { getAuthSession } from '@/lib/nextauth';
 import { redirect } from 'next/navigation';
 import Link from "next/link"
@@ -27,7 +27,7 @@ export default async function Home() {
           <Link className="text-sm font-medium hover:underline underline-offset-4" href="#how-it-works">
             How It Works
           </Link> */}
-          <SignInButton text={"Sign In"}  variant="ghost"/>
+          {/* <SignInButton text={"Sign In"}  variant="ghost"/> */}
         </nav>
       </header>
       <main className="flex-1">
@@ -43,7 +43,8 @@ export default async function Home() {
                 </p>
               </div>
               <div className="space-x-4">
-                <SignInButton text={"Sign Up or Sign in with Google"} variant="secondary" />
+                {/* <SignInButton text={"Sign Up or Sign in with Google"} variant="secondary" /> */}
+                <Button className="w-full" variant="secondary">Beta release is expected soon</Button>
               </div>
             </div>
           </div>
@@ -192,7 +193,8 @@ export default async function Home() {
                 </p>
               </div>
               <div className="w-full max-w-sm space-y-2">
-                <SignInButton text={"Sign Up with Google now"} className="w-full" />
+                {/* <SignInButton text={"Sign Up with Google now"} className="w-full" /> */}
+                <Button className="w-full">You will be able to join soon!</Button>
                 <p className="text-xs text-gray-500">
                   By signing up, you agree to our{" "}
                   <Link className="underline underline-offset-2" href="/terms">
