@@ -39,13 +39,12 @@ const BlankAnswerInput = ({ answer, setBlankAnswer }: Props) => {
       <h1 className="text-xl font-semibold">
         {
           answerWithBlanks.split(BLANKS).map((part, index) => {
-            const isDisabled = userRole === Role.SPECTATOR;
             return (
               <React.Fragment key={index}>
                 {part}
                 {index === answerWithBlanks.split(BLANKS).length - 1 ? null : (
                   <input
-                    disabled={isDisabled}
+                    disabled={userRole === Role.SPECTATOR}
                     type="text"
                     id="user-blank-input"
                     className={"text-center border-b-2 border-black dark:border-white w-28 focus:border-2 focus:border-b-4 focus:outline-none"}

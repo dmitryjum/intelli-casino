@@ -234,7 +234,7 @@ const MCQ = ({ gameId }: Props) => {
       <div className="flex flex-col items-center justify-center w-full mt-4">
         {options.map((option, index) => {
           return (
-            <Button key={index} className='justify-start w-full py-8 mb-4'
+            <Button disabled={userRole === Role.SPECTATOR} key={index} className='justify-start w-full py-8 mb-4'
             variant={selectedChoice === index ? 'default' : 'secondary'}
             onClick={() => {
               setSelectedChoice(index);
@@ -261,4 +261,4 @@ const MCQ = ({ gameId }: Props) => {
   )
 }
 
-export default MCQ
+export default React.memo(MCQ);
