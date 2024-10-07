@@ -4,17 +4,16 @@ import React from 'react'
 import { Button, ButtonProps } from './ui/button';
 import { signIn } from 'next-auth/react';
 
-type Props = {
-  text: string,
-  styles?: string,
-  variant: string
+interface SignInButtonProps extends ButtonProps {
+  text: string;
 }
 
-const SignInButton = ({text, styles, variant}: Props) => {
+const SignInButton: React.FC<SignInButtonProps> = ({text, ...props}) => {
+  console.log(props);
   return (
-    <Button className={styles} variant={variant} onClick={() => {
+    <Button onClick={() => {
       signIn("google").catch(console.error)
-    }}>
+    }} {...props}>
       {text}
     </Button>
   )

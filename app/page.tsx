@@ -2,7 +2,6 @@ import SignInButton from '@/components/SignInButton';
 import { getAuthSession } from '@/lib/nextauth';
 import { redirect } from 'next/navigation';
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Brain, Clock, Users, TrendingUp, Coins, Eye } from "lucide-react"
 
@@ -19,7 +18,7 @@ export default async function Home() {
           <Brain className="h-6 w-6 mr-2" />
           <span className="font-bold">Intelli Casino</span>
         </Link>
-        <nav className="ml-auto flex gap-4 sm:gap-6">
+        {/* <nav className="ml-auto flex gap-4 sm:gap-6">
           <Link className="text-sm font-medium hover:underline underline-offset-4" href="#features">
             Features
           </Link>
@@ -29,7 +28,7 @@ export default async function Home() {
           <Link className="text-sm font-medium hover:underline underline-offset-4" href="#join">
             Join Now
           </Link>
-        </nav>
+        </nav> */}
       </header>
       <main className="flex-1">
         <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48 bg-black text-white">
@@ -44,10 +43,7 @@ export default async function Home() {
                 </p>
               </div>
               <div className="space-x-4">
-                <SignInButton text={"Sign In"} variant={"secondary"} />
-                <Button asChild>
-                  Sign UP
-                </Button>
+                <SignInButton text={"Sign Up or Sign in with Google"} variant="secondary" />
               </div>
             </div>
           </div>
@@ -124,9 +120,7 @@ export default async function Home() {
                 </p>
               </div>
               <div className="w-full max-w-sm space-y-2">
-                <Button className="w-full" asChild>
-                  <Link href="/signup">Sign Up Now</Link>
-                </Button>
+                <SignInButton text={"Sign Up with Google now"} className="w-full" />
                 <p className="text-xs text-gray-500">
                   By signing up, you agree to our{" "}
                   <Link className="underline underline-offset-2" href="/terms">
