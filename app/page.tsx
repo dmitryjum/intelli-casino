@@ -6,6 +6,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Brain, Clock, Users, TrendingUp, Coins, Eye, Wallet } from "lucide-react"
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import Image from 'next/image';
 
 export default async function Home() {
   const session = await getAuthSession()
@@ -17,7 +18,15 @@ export default async function Home() {
     <div className="flex flex-col min-h-screen">
       <header className="px-4 lg:px-6 h-14 flex items-center">
         <Link className="flex items-center justify-center" href="#">
-          <Brain className="h-6 w-6 mr-2" />
+          <div className="relative w-14 h-14 mt-3">
+            <Image
+              src="/Intelli-Casino-logo-white.png"
+              alt="Intelli Casino Logo"
+              layout="fill"
+              objectFit="contain"
+              objectPosition="center"
+            />
+          </div>
           <span className="font-bold">Intelli Casino</span>
         </Link>
         <nav className="ml-auto flex gap-4 sm:gap-6">
@@ -31,20 +40,28 @@ export default async function Home() {
         </nav>
       </header>
       <main className="flex-1">
-        <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48 bg-black text-white">
-          <div className="container px-4 md:px-6">
-            <div className="flex flex-col items-center space-y-4 text-center">
-              <div className="space-y-2">
+        <section className="w-full sm:pt-14 md:pt-0 bg-black text-white">
+          <div className="container px-4 md:pr-2 md:pl-9">
+            <div className="flex flex-col md:flex-row items-center justify-between">
+              <div className="space-y-4 text-center md:text-left md:w-1/2">
                 <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none">
                   Welcome to Intelli Casino
                 </h1>
-                <p className="mx-auto max-w-[700px] text-gray-400 md:text-xl">
+                <p className="mx-auto md:mx-0 max-w-[700px] text-gray-400 md:text-xl">
                   Where knowledge meets excitement. Create quizzes, play games, and bet on intellectual challenges.
                 </p>
+                <Button className="w-full md:w-auto" variant="secondary">Beta release is expected soon</Button>
               </div>
-              <div className="space-x-4">
-                {/* <SignInButton text={"Sign Up or Sign in with Google"} variant="secondary" /> */}
-                <Button className="w-full" variant="secondary">Beta release is expected soon</Button>
+              <div className="-mb-28 md:w-1/2 flex justify-center items-center">
+                <div className="relative w-[600px] h-[600px] md:w-[600px] md:h-[600px]">
+                  <Image
+                    src="/Intelli-Casino-logo.png"
+                    alt="Intelli Casino Logo"
+                    layout="fill"
+                    objectFit="contain"
+                    objectPosition="center"
+                  />
+                </div>
               </div>
             </div>
           </div>
