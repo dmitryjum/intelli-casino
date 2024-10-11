@@ -40,8 +40,8 @@ export default async function Home() {
         </nav>
       </header>
       <main className="flex-1">
-        <section className="w-full sm:pt-14 md:pt-0 bg-black text-white">
-          <div className="container px-4 md:pr-2 md:pl-9">
+        <section className="sm:pt-14 md:pt-0 bg-black text-white">
+          <div className="container pt-4 md:pt-0 px-4 md:pr-2 md:pl-9">
             <div className="flex flex-col md:flex-row items-center justify-between">
               <div className="space-y-4 text-center md:text-left md:w-1/2">
                 <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none">
