@@ -7,6 +7,7 @@ export const QUESTION_FRAGMENT = gql`
     question
     options
     answer
+    userAnswer
   }
 `;
 

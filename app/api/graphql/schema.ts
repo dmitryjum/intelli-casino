@@ -33,6 +33,7 @@ const typeDefs = gql`
     question: String!
     options: JSON
     answer: String!
+    userAnswer: String
   }
 
   type Query {

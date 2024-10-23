@@ -37,7 +37,8 @@ const resolvers: IResolvers = {
               id: true,
               question: true,
               options: true,
-              answer: true
+              answer: true,
+              userAnswer: true
             }
           }
         }
@@ -97,7 +98,8 @@ const resolvers: IResolvers = {
               id: true,
               question: true,
               options: true,
-              answer: true
+              answer: true,
+              userAnswer: true
             }
           }
         }
@@ -124,7 +126,8 @@ const resolvers: IResolvers = {
               id: true,
               question: true,
               options: true,
-              answer: true
+              answer: true,
+              userAnswer: true
             }
           }
         }
@@ -148,7 +151,8 @@ const resolvers: IResolvers = {
               id: true,
               question: true,
               options: true,
-              answer: true
+              answer: true,
+              userAnswer: true
             }
           }
         }
