@@ -1,6 +1,7 @@
 'use client';
 import { cn, formatTimeDelta } from '@/lib/utils';
-import { GameStatus, GameType, Role, Game, Question } from '@prisma/client'
+// import { GameStatus, GameType, Role, Question } from '@prisma/client'
+
 import { BarChart, ChevronRight, Loader2, Timer } from 'lucide-react';
 import React from 'react'
 import { Card, CardDescription, CardHeader, CardTitle } from './ui/card';
@@ -16,6 +17,8 @@ import { useUserContext } from '@/app/context/UserContext';
 import StartTimer from './StartTimer';
 import { OPEN_DURATION, QUESTION_DURATION } from '@/lib/constants';
 import { useGames } from '@/app/hooks/useGames';
+import { Game, GameStatus, GameType, Question } from '@/app/api/graphql/generated/graphql'
+import { Role } from '@prisma/client';
 
 type Props = {
   gameId: string
@@ -26,22 +29,24 @@ const OpenEnded = ({ gameId }: Props) => {
   const { gameData, loading, error, closeGame, finishGame, updateGameQuestion } = useGames({ gameId, userRole });
   const [blankAnswer, setBlankAnswer] = React.useState<string>("");
   const {toast} = useToast();
-  
+ 
   let game: Game & { questions: Pick<Question, 'id' | 'question' | 'answer'>[] };
 
   game = {
     id: gameData?.id || '', // Ensure id is a string
     userId: gameData?.userId || '', // Ensure userId is a string
-    status: gameData?.status || GameStatus.OPEN, // Provide a default status
+    status: gameData?.status || GameStatus.Open, // Provide a default status
     openAt: gameData?.openAt || null, // Keep as is
     timeStarted: gameData?.timeStarted || new Date(), // Provide a default date
     topic: gameData?.topic || '', // Ensure topic is a string
     timeEnded: gameData?.timeEnded || null, // Keep as is
-    gameType: gameData?.gameType || GameType.open_ended, // Provide a default gameType
+    gameType: gameData?.gameType || GameType.OpenEnded, // Provide a default gameType
     currentQuestionIndex: gameData?.currentQuestionIndex || 0, // Provide a default index
     currentQuestionStartTime: gameData?.currentQuestionStartTime || null, // Keep as is
     questions: (gameData as { questions?: any[] })?.questions || []
   }
+
+  // game = gameData.game
   
   const currentQuestion = React.useMemo(() => {
     return game.questions[game.currentQuestionIndex] || { question: "No question available"}
@@ -130,10 +135,7 @@ const OpenEnded = ({ gameId }: Props) => {
     if (userRole === Role.PLAYER) handleNext();
   }, [handleNext]);
 
-  if (loading) return <div>Loading...</div>
-  if (error) return <div>Error: {error.message}</div>
-
-  if (game.status === GameStatus.OPEN) {
+  if (game.status === GameStatus.Open) {
     return (
       <div className="absolute flex flex-col justify-center top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
         <div className="px-4 mt-2 font-semibold text-white bg-blue-500 rounded-md whitespace-nowrap">
@@ -162,6 +164,9 @@ const OpenEnded = ({ gameId }: Props) => {
       </div>
     )
   }
+
+  if (loading) return <div>Loading...</div>
+  if (error) return <div>Error: {error.message}</div>
 
   if (game.timeEnded) {
     return (
