@@ -5,7 +5,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { GameStatus, Game, GameType, Question, Role } from '@prisma/client';
 
 interface GameData {
-  game: Game & { questions: Pick<Question, 'id' | 'question' | 'answer' | 'options'>[] }
+  game: Game & { questions: Pick<Question, 'id' | 'question' | 'answer' | 'options' | 'userAnswer'>[] }
 }
 
 interface GetGameQueryArgs {
@@ -83,7 +83,7 @@ const useGames = ({ gameId, userRole }: Props) => {
     },
   });
 
-  useSubscription<{ gameUpdated: Game & { questions: Pick<Question, 'id' | 'question' | 'answer' | 'options'>[] }}>(GAME_UPDATED, {
+  useSubscription<{ gameUpdated: Game & { questions: Pick<Question, 'id' | 'question' | 'answer' | 'options' | 'userAnswer'>[] }}>(GAME_UPDATED, {
     variables: { gameId },
     onData: ({ client, data }) => {
       if (!data) return;
@@ -96,11 +96,16 @@ const useGames = ({ gameId, userRole }: Props) => {
             game: updatedGame
           }
         });
-        if (userRole === Role.SPECTATOR) toast({
-            title: "Last question correct answer",
-            description: updatedGame.questions[updatedGame.currentQuestionIndex]?.answer || 'No answer available',
-            variant: "success",
+        if (userRole === Role.SPECTATOR) {
+          // check the first and the last questions, because the index doesn't change
+          toast({
+            title: "Player's last question answer",
+            description: updatedGame.questions[updatedGame.currentQuestionIndex - 1]?.userAnswer || 'No answer available',
+            titleTwo: "Correct Answer",
+            descriptionTwo: updatedGame.questions[updatedGame.currentQuestionIndex - 1]?.answer || 'No answer available',
+            toastremovedelay: 7000
           })
+        }
       }
     },
   });
