@@ -55,6 +55,7 @@ const OpenEnded = ({ gameId }: Props) => {
         toast({
           title: `Your answer is ${percentageSimilar}% similar to the correct answer`,
           description: "Answers are matched based on similarity comparisons",
+          toastremovedelay: 5000
         })
         if (game.currentQuestionIndex === game.questions.length -1) {
           const currentTime = new Date()

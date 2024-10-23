@@ -52,7 +52,8 @@ const MCQ = ({ gameId }: Props) => {
         if (isCorrect) {
           toast({
             title: "Correct answer!",
-            variant: 'success'
+            variant: 'success',
+            toastremovedelay: 5000
           })
           setCorrectAnswers((prev) => prev + 1);
         } else {

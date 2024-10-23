@@ -16,6 +16,7 @@ type ToasterToast = ToastProps & {
   title?: React.ReactNode
   description?: React.ReactNode
   action?: ToastActionElement
+  toastremovedelay?: number
 }
 
 const actionTypes = {
@@ -38,6 +39,7 @@ type Action =
   | {
       type: ActionType["ADD_TOAST"]
       toast: ToasterToast
+      toastRemoveDelay?: number
     }
   | {
       type: ActionType["UPDATE_TOAST"]
@@ -58,7 +60,7 @@ interface State {
 
 const toastTimeouts = new Map<string, ReturnType<typeof setTimeout>>()
 
-const addToRemoveQueue = (toastId: string) => {
+const addToRemoveQueue = (toastId: string, delay: number) => {
   if (toastTimeouts.has(toastId)) {
     return
   }
@@ -69,7 +71,7 @@ const addToRemoveQueue = (toastId: string) => {
       type: "REMOVE_TOAST",
       toastId: toastId,
     })
-  }, TOAST_REMOVE_DELAY)
+  }, delay)
 
   toastTimeouts.set(toastId, timeout)
 }
@@ -77,6 +79,8 @@ const addToRemoveQueue = (toastId: string) => {
 export const reducer = (state: State, action: Action): State => {
   switch (action.type) {
     case "ADD_TOAST":
+      const { toast, toastRemoveDelay = TOAST_REMOVE_DELAY } = action;
+      addToRemoveQueue(toast.id, toastRemoveDelay);
       return {
         ...state,
         toasts: [action.toast, ...state.toasts].slice(0, TOAST_LIMIT),
@@ -96,10 +100,10 @@ export const reducer = (state: State, action: Action): State => {
       // ! Side effects ! - This could be extracted into a dismissToast() action,
       // but I'll keep it here for simplicity
       if (toastId) {
-        addToRemoveQueue(toastId)
+        addToRemoveQueue(toastId, TOAST_REMOVE_DELAY)
       } else {
         state.toasts.forEach((toast) => {
-          addToRemoveQueue(toast.id)
+          addToRemoveQueue(toast.id, TOAST_REMOVE_DELAY)
         })
       }
 
@@ -162,6 +166,7 @@ function toast({ ...props }: Toast) {
         if (!open) dismiss()
       },
     },
+    toastRemoveDelay: props.toastremovedelay,
   })
 
   return {
