@@ -1,22 +1,22 @@
 'use client'
 import { Role, GameStatus} from '@prisma/client'
-import { differenceInSeconds } from 'date-fns'
-import { BarChart, ChevronRight, Loader2, Timer } from 'lucide-react'
+import { ChevronRight, Loader2, Timer } from 'lucide-react'
 import React from 'react'
 import { Card, CardDescription, CardHeader, CardTitle } from './ui/card'
-import { Button, buttonVariants } from './ui/button'
+import { Button } from './ui/button'
 import MCQCounter from './MCQCounter'
 import { useMutation } from '@tanstack/react-query'
 import axios from 'axios'
 import { z } from 'zod'
 import { checkAnswerSchema } from '@/schemas/form/quiz'
 import { useToast } from './ui/use-toast'
-import Link from 'next/link'
-import { cn, formatTimeDelta, handleCountdownComplete } from '@/lib/utils'
+import { formatTimeDelta } from '@/lib/utils'
 import { useUserContext } from '@/app/context/UserContext'
 import { useGames } from '@/app/hooks/useGames';
 import StartTimer from './StartTimer';
-import { OPEN_DURATION, QUESTION_DURATION } from '@/lib/constants';
+import { QUESTION_DURATION } from '@/lib/constants';
+import GameOpenView from './GameOpenView'
+import GameEndedView from './GameEndedView'
 
 type Props = {
   gameId: string
@@ -114,10 +114,6 @@ const MCQ = ({ gameId }: Props) => {
     return JSON.parse(currentQuestion.options as string) as string[];
   }, [currentQuestion]);
 
-  const onCountdownComplete = React.useCallback(() => {
-    handleCountdownComplete(gameId, closeGame, toast);
-  }, [gameId, closeGame]);
-
   const handleQuestionTimerEnd = React.useCallback(() => {
     if (userRole === Role.PLAYER) handleNext();
   }, [handleNext]);
@@ -126,47 +122,11 @@ const MCQ = ({ gameId }: Props) => {
   if (error) return <div>Error: {error.message}</div>
 
   if (game.status === GameStatus.OPEN) {
-    return (
-      <div className="absolute flex flex-col justify-center top-1/2 left-1/2 -translate-x-1/2 top-1/2 left-1/2">
-        <div className="px-4 mt-2 font-semibold text-white bg-blue-500 rounded-md whitespace-nowrap">
-          Game will start in 1 minute...
-        </div>
-        <div className="mt-4">
-          <StartTimer
-            // while the key prop doesn't directly set endTimeRef,
-            //  changing the key does cause the component to remount
-            key={new Date(game.timeStarted).getTime()}
-            duration={OPEN_DURATION}
-            startAt={game.openAt}
-            onTimerEnd={onCountdownComplete}
-          >
-            {(timeLeft) => (
-              <div className="flex items-center justify-center space-x-2 bg-gray-100 rounded-lg p-4 w-48">
-                <Timer className={`h-6 w-6 ${timeLeft === 0 ? 'text-green-500' : 'text-blue-500'}`} />
-                <div className="text-2xl font-bold">
-                  {Math.floor(timeLeft / 60).toString().padStart(2, '0')}:
-                  {(timeLeft % 60).toString().padStart(2, '0')}
-                </div>
-              </div>
-            )}
-          </StartTimer>
-        </div>
-      </div>
-    )
+    return <GameOpenView gameId={gameId} game={game} closeGame={closeGame} />;
   }
 
   if (game.timeEnded) {
-    return (
-      <div className="absolute flex flex-col justify-center top-1/2 left-1/2 -translate-x-1/2 top-1/2 left-1/2">
-        <div className="px-4 mt-2 font-semibold text-white bg-green-500 rounded-md whitespace-nowrap">
-          You completed in {formatTimeDelta(differenceInSeconds(new Date().getTime(), game.timeStarted))}
-        </div>
-        <Link href={`/statistics/${game.id}`} className={cn(buttonVariants(), "mt-2")}>
-          View Statistics
-          <BarChart className="w-4 h-4 ml-2" />
-        </Link>
-      </div>
-    )
+    return <GameEndedView game={game} />
   }
   
   return (
