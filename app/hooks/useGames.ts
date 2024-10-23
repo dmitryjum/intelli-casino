@@ -2,10 +2,14 @@ import { CLOSE_GAME, FINISH_GAME, GAME_UPDATED, UPDATE_GAME_QUESTION, GET_GAME, 
 import { useMutation, useSubscription, useQuery } from '@apollo/client';
 import { useToast } from '@/components/ui/use-toast';
 
-import { GameStatus, Game, Question, Role } from '@prisma/client';
+import { GameStatus, Game, GameType, Question, Role } from '@prisma/client';
 
 interface GameData {
   game: Game & { questions: Pick<Question, 'id' | 'question' | 'answer' | 'options'>[] }
+}
+
+interface GetGameQueryArgs {
+  gameId: string
 }
 
 type Props = {
@@ -15,15 +19,29 @@ type Props = {
 
 const useGames = ({ gameId, userRole }: Props) => {
   const {toast} = useToast();
-  const { data, loading: queryLoading, error: queryError } = useQuery<GameData, { gameId: string }>(GET_GAME, {
+  const { data, loading: queryLoading, error: queryError } = useQuery<GameData, GetGameQueryArgs>(GET_GAME, {
     variables: { gameId },
     fetchPolicy: 'cache-and-network',
   });
 
+  const game = {
+    id: data?.game.id || '',
+    userId: data?.game.userId || '',
+    status: data?.game.status || GameStatus.OPEN,
+    openAt: data?.game.openAt || null,
+    timeStarted: data?.game.timeStarted || new Date(),
+    topic: data?.game.topic || '',
+    timeEnded: data?.game.timeEnded || null,
+    gameType: data?.game.gameType || GameType.open_ended,
+    currentQuestionIndex: data?.game.currentQuestionIndex || 0,
+    currentQuestionStartTime: data?.game.currentQuestionStartTime || null,
+    questions: data?.game.questions || []
+  };
+
   const [openGame, {loading: openGameLoading, error: openGameError}] = useMutation(OPEN_GAME, {
     update(cache, { data }) {
       if(!data) return;
-      cache.writeQuery<GameData, { gameId: string}>({
+      cache.writeQuery<GameData, GetGameQueryArgs>({
         query: GET_GAME,
         variables: { gameId },
         data: { game: data.openGame}
@@ -34,7 +52,7 @@ const useGames = ({ gameId, userRole }: Props) => {
   const [closeGame, {loading: closeGameLoading, error: closeGameError}] = useMutation(CLOSE_GAME, {
     update(cache, { data }) {
       if(!data) return;
-      cache.writeQuery<GameData, { gameId: string}>({
+      cache.writeQuery<GameData, GetGameQueryArgs>({
         query: GET_GAME,
         variables: { gameId },
         data: { game: data.closeGame}
@@ -45,7 +63,7 @@ const useGames = ({ gameId, userRole }: Props) => {
   const [finishGame, { loading: finishLoading, error: finishError }] = useMutation(FINISH_GAME, {
     update(cache, { data }) {
       if (!data) return;
-      cache.writeQuery<GameData, { gameId: string }>({
+      cache.writeQuery<GameData, GetGameQueryArgs>({
         query: GET_GAME,
         variables: { gameId },
         data: { game: data.finishGame },
@@ -57,7 +75,7 @@ const useGames = ({ gameId, userRole }: Props) => {
   const [updateGameQuestion, { loading: updateLoading, error: updateError }] = useMutation(UPDATE_GAME_QUESTION, {
     update(cache, { data }) {
       if (!data) return;
-      cache.writeQuery<GameData, { gameId: string }>({
+      cache.writeQuery<GameData, GetGameQueryArgs>({
         query: GET_GAME,
         variables: { gameId },
         data: { game: data.updateGameQuestion },
@@ -91,7 +109,7 @@ const useGames = ({ gameId, userRole }: Props) => {
   const mutationError = closeGameError || finishError || finishError || queryError || openGameError
 
   return {
-    gameData: data?.game,
+    game,
     loading: isMutating,
     error: mutationError,
     openGame,

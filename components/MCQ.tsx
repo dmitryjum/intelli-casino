@@ -1,5 +1,5 @@
 'use client'
-import { Role, GameType, GameStatus, Game, Question } from '@prisma/client'
+import { Role, GameStatus} from '@prisma/client'
 import { differenceInSeconds } from 'date-fns'
 import { BarChart, ChevronRight, Loader2, Timer } from 'lucide-react'
 import React from 'react'
@@ -24,27 +24,11 @@ type Props = {
 
 const MCQ = ({ gameId }: Props) => {
   const { userRole } = useUserContext();
-  const { gameData, loading, error, closeGame, finishGame, updateGameQuestion } = useGames({ gameId, userRole });
+  const { game, loading, error, closeGame, finishGame, updateGameQuestion } = useGames({ gameId, userRole });
   const [selectedChoice, setSelectedChoice] = React.useState<number>(0);
   const [correctAnswers, setCorrectAnswers] = React.useState<number>(0);
   const [wrongAnswers, setWrongAnswers] = React.useState<number>(0);
   const {toast} = useToast();
-
-  let game: Game & { questions: Pick<Question, 'id' | 'question' | 'answer' | 'options'>[] };
-
-  game = {
-    id: gameData?.id || '', // Ensure id is a string
-    userId: gameData?.userId || '', // Ensure userId is a string
-    status: gameData?.status || GameStatus.OPEN, // Provide a default status
-    openAt: gameData?.openAt || null, // Keep as is
-    timeStarted: gameData?.timeStarted || new Date(), // Provide a default date
-    topic: gameData?.topic || '', // Ensure topic is a string
-    timeEnded: gameData?.timeEnded || null, // Keep as is
-    gameType: gameData?.gameType || GameType.open_ended, // Provide a default gameType
-    currentQuestionIndex: gameData?.currentQuestionIndex || 0, // Provide a default index
-    currentQuestionStartTime: gameData?.currentQuestionStartTime || null, // Keep as is
-    questions: (gameData as { questions?: any[] })?.questions || []
-  }
 
   const currentQuestion = React.useMemo(() => {
     return game.questions[game.currentQuestionIndex] || { question: "No question available"}
