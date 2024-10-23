@@ -1,5 +1,5 @@
 'use client';
-import { cn, formatTimeDelta } from '@/lib/utils';
+import { cn, formatTimeDelta, handleCountdownComplete } from '@/lib/utils';
 import { GameStatus, Role } from '@prisma/client'
 import { BarChart, ChevronRight, Loader2, Timer } from 'lucide-react';
 import React from 'react'
@@ -92,23 +92,9 @@ const OpenEnded = ({ gameId }: Props) => {
     }
   }, [handleNext]);
 
-  const handleCountdownComplete = React.useCallback(() => {
-    closeGame({
-      variables: {
-        gameId: gameId,
-        currentQuestionIndex: 0
-      }
-    })
-      .then(() => {
-        toast({
-          title: 'Game Closed',
-          description: `The game has been closed for bets.`,
-        });
-      })
-      .catch((error) => {
-        console.error('Error during game closure:', error);
-      });
-  }, [closeGame, toast, gameId]);
+  const onCountdownComplete = React.useCallback(() => {
+    handleCountdownComplete(gameId, closeGame, toast);
+  }, [gameId, closeGame, toast]);
 
   const handleQuestionTimerEnd = React.useCallback(() => {
     if (userRole === Role.PLAYER) handleNext();
@@ -130,7 +116,7 @@ const OpenEnded = ({ gameId }: Props) => {
             key={new Date(game.timeStarted).getTime()}
             duration={OPEN_DURATION}
             startAt={game.openAt}
-            onTimerEnd={handleCountdownComplete}
+            onTimerEnd={onCountdownComplete}
           >
             {(timeLeft) => (
               <div className="flex items-center justify-center space-x-2 bg-gray-100 rounded-lg p-4 w-48">

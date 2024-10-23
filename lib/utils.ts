@@ -21,3 +21,20 @@ export function formatTimeDelta(seconds: number) {
   }
   return parts.join(" ");
 }
+
+export const handleCountdownComplete = async (gameId: string, closeGame: Function, toast: Function) => {
+  try {
+    await closeGame({
+      variables: {
+        gameId: gameId,
+        currentQuestionIndex: 0
+      }
+    });
+    toast({
+      title: 'Game Closed',
+      description: `The game has been closed for bets.`,
+    });
+  } catch (error) {
+    console.error('Error during game closure:', error);
+  }
+}; 

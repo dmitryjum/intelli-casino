@@ -12,7 +12,7 @@ import { z } from 'zod'
 import { checkAnswerSchema } from '@/schemas/form/quiz'
 import { useToast } from './ui/use-toast'
 import Link from 'next/link'
-import { cn, formatTimeDelta } from '@/lib/utils'
+import { cn, formatTimeDelta, handleCountdownComplete } from '@/lib/utils'
 import { useUserContext } from '@/app/context/UserContext'
 import { useGames } from '@/app/hooks/useGames';
 import StartTimer from './StartTimer';
@@ -114,19 +114,9 @@ const MCQ = ({ gameId }: Props) => {
     return JSON.parse(currentQuestion.options as string) as string[];
   }, [currentQuestion]);
 
-  const handleCountdownComplete = React.useCallback(() => {
-    // Automatically close the game when countdown finishes
-    closeGame({ variables: { gameId: game.id, currentQuestionIndex: 0 } })
-      .then(() => {
-        toast({
-          title: 'Game Closed',
-          description: `The game has been closed for bets.`,
-        });
-      })
-      .catch((error) => {
-        console.error('Error during game closure:', error);
-      });
-  }, [closeGame, toast, game.id]);
+  const onCountdownComplete = React.useCallback(() => {
+    handleCountdownComplete(gameId, closeGame, toast);
+  }, [gameId, closeGame]);
 
   const handleQuestionTimerEnd = React.useCallback(() => {
     if (userRole === Role.PLAYER) handleNext();
@@ -148,7 +138,7 @@ const MCQ = ({ gameId }: Props) => {
             key={new Date(game.timeStarted).getTime()}
             duration={OPEN_DURATION}
             startAt={game.openAt}
-            onTimerEnd={handleCountdownComplete}
+            onTimerEnd={onCountdownComplete}
           >
             {(timeLeft) => (
               <div className="flex items-center justify-center space-x-2 bg-gray-100 rounded-lg p-4 w-48">
