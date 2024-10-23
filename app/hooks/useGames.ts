@@ -86,25 +86,40 @@ const useGames = ({ gameId, userRole }: Props) => {
   useSubscription<{ gameUpdated: Game & { questions: Pick<Question, 'id' | 'question' | 'answer' | 'options' | 'userAnswer'>[] }}>(GAME_UPDATED, {
     variables: { gameId },
     onData: ({ client, data }) => {
-      if (!data) return;
-      const updatedGame = data.data?.gameUpdated;
-      // no need to update anything if the game has just switched from open to closed
-      if (updatedGame && (updatedGame.status !== GameStatus.OPEN)) {
-        client.writeQuery({
-          query: GET_GAME,
-          data: {
-            game: updatedGame
-          }
-        });
-        if (userRole === Role.SPECTATOR) {
-          // check the first and the last questions, because the index doesn't change
+      if (!data?.data?.gameUpdated) return;
+      const updatedGame = data.data.gameUpdated;
+
+      // Update the cache with the new game data
+      client.writeQuery({
+        query: GET_GAME,
+        data: {
+          game: updatedGame
+        }
+      });
+
+      // Logic for Spectator role
+      if (userRole === Role.SPECTATOR) {
+        let previousQuestion;
+
+        // Determine if the game has just finished
+        if (updatedGame.status === GameStatus.FINISHED) {
+          previousQuestion = updatedGame.questions[updatedGame.currentQuestionIndex];
+        } else if (updatedGame.currentQuestionIndex > 0 && updatedGame.status === GameStatus.CLOSED) {
+          // If the currentQuestionIndex is greater than 0, a question has been answered
+          previousQuestion = updatedGame.questions[updatedGame.currentQuestionIndex - 1];
+        }
+
+        // Show toast with correct answer and user answer for the previous question
+        if (previousQuestion) {
+          const correct: boolean = previousQuestion.userAnswer == previousQuestion.answer
           toast({
             title: "Player's last question answer",
-            description: updatedGame.questions[updatedGame.currentQuestionIndex - 1]?.userAnswer || 'No answer available',
+            description: previousQuestion.userAnswer || 'No answer available',
             titleTwo: "Correct Answer",
-            descriptionTwo: updatedGame.questions[updatedGame.currentQuestionIndex - 1]?.answer || 'No answer available',
-            toastremovedelay: 7000
-          })
+            descriptionTwo: previousQuestion.answer || 'No answer available',
+            toastremovedelay: 7000,
+            variant: correct ? "success" : "destructive"
+          });
         }
       }
     },
