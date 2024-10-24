@@ -4,6 +4,7 @@ import { IResolvers } from '@graphql-tools/utils';
 import GraphQLJSON from 'graphql-type-json';
 import { GraphQLDateTime } from 'graphql-scalars';
 import { OPEN_DURATION } from '@/lib/constants';
+import { generateBlankedAnswer } from '@/lib/utils';
 
 const pubsub = new PubSub();
 const prisma = new PrismaClient();
@@ -38,7 +39,8 @@ const resolvers: IResolvers = {
               question: true,
               options: true,
               answer: true,
-              userAnswer: true
+              userAnswer: true,
+              blankedAnswer: true
             }
           }
         }
@@ -67,7 +69,8 @@ const resolvers: IResolvers = {
               id: true,
               question: true,
               options: true,
-              answer: true
+              answer: true,
+              blankedAnswer: true
             }
           }
         }
@@ -99,11 +102,18 @@ const resolvers: IResolvers = {
               question: true,
               options: true,
               answer: true,
-              userAnswer: true
+              userAnswer: true,
+              blankedAnswer: true
             }
           }
         }
       });
+      const currentQuestion = updatedGame.questions[updatedData.currentQuestionIndex];
+      const blankedAnswer = generateBlankedAnswer(currentQuestion.answer);
+      await prisma.question.update({
+        where: {id: currentQuestion.id },
+        data: { blankedAnswer },
+      })
 
 
       // publish to pubsub
@@ -127,7 +137,8 @@ const resolvers: IResolvers = {
               question: true,
               options: true,
               answer: true,
-              userAnswer: true
+              userAnswer: true,
+              blankedAnswer: true
             }
           }
         }
@@ -139,7 +150,7 @@ const resolvers: IResolvers = {
       return updatedGame;
     },
     updateGameQuestion: async (_: any, { gameId, currentQuestionStartTime, currentQuestionIndex }: { gameId: string, currentQuestionStartTime: string, currentQuestionIndex: number }) => {
-      const updatedGame = await prisma.game.update({
+      let updatedGame = await prisma.game.update({
         where: { id: gameId },
         data: {
           currentQuestionIndex: currentQuestionIndex,
@@ -152,11 +163,19 @@ const resolvers: IResolvers = {
               question: true,
               options: true,
               answer: true,
-              userAnswer: true
+              userAnswer: true,
+              blankedAnswer: true
             }
           }
         }
       });
+
+      const currentQuestion = updatedGame.questions[updatedGame.currentQuestionIndex];
+      const blankedAnswer = generateBlankedAnswer(currentQuestion.answer);
+      await prisma.question.update({
+        where: { id: currentQuestion.id },
+        data: { blankedAnswer },
+      })
 
       pubsub.publish(GAME_UPDATED, { gameUpdated: updatedGame });
 

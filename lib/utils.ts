@@ -1,5 +1,6 @@
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
+import keyword_extractor from 'keyword-extractor';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -37,4 +38,20 @@ export const handleCountdownComplete = async (gameId: string, closeGame: Functio
   } catch (error) {
     console.error('Error during game closure:', error);
   }
-}; 
+};
+
+export function generateBlankedAnswer(answer: string): string {
+  const BLANKS = '_____';
+  const extractedKeywords = keyword_extractor.extract(answer, {
+    language: "english",
+    remove_digits: true,
+    return_changed_case: false,
+    remove_duplicates: false,
+  });
+  const shuffledKeywords = extractedKeywords.sort(() => Math.random() - 0.5);
+  const selectedKeywords = shuffledKeywords.slice(0, 2);
+
+  return selectedKeywords.reduce((acc, keyword) => {
+    return acc.replace(keyword, BLANKS);
+  }, answer);
+}

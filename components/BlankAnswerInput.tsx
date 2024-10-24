@@ -6,43 +6,43 @@ import { Role } from '@prisma/client';
 
 type Props = {
   answer: string;
-  setBlankAnswer: React.Dispatch<React.SetStateAction<string>>;
+  // setBlankAnswer: React.Dispatch<React.SetStateAction<string>>;
 };
 
 const BLANKS = '_____';
 
-const BlankAnswerInput = ({ answer, setBlankAnswer }: Props) => {
+const BlankAnswerInput = ({ answer }: Props) => {
   const { userRole } = useUserContext();
-  const [answerWithBlanks, setAnswerWithBlanks] = useState<string>(answer);
+  // const [answerWithBlanks, setAnswerWithBlanks] = useState<string>(answer);
   // Calculate keywords and blanks only on the client side
-  useEffect(() => {
-    const extractedKeywords = keyword_extractor.extract(answer, {
-      language: "english",
-      remove_digits: true,
-      return_changed_case: false,
-      remove_duplicates: false,
-    });
-    const shuffledKeywords = extractedKeywords.sort(() => Math.random() - 0.5);
-    const selectedKeywords = shuffledKeywords.slice(0, 2);
+  // useEffect(() => {
+  //   const extractedKeywords = keyword_extractor.extract(answer, {
+  //     language: "english",
+  //     remove_digits: true,
+  //     return_changed_case: false,
+  //     remove_duplicates: false,
+  //   });
+  //   const shuffledKeywords = extractedKeywords.sort(() => Math.random() - 0.5);
+  //   const selectedKeywords = shuffledKeywords.slice(0, 2);
 
 
-    const updatedAnswerWithBlanks = selectedKeywords.reduce((acc, keyword) => {
-      return acc.replace(keyword, BLANKS);
-    }, answer);
+  //   const updatedAnswerWithBlanks = selectedKeywords.reduce((acc, keyword) => {
+  //     return acc.replace(keyword, BLANKS);
+  //   }, answer);
 
-    setAnswerWithBlanks(updatedAnswerWithBlanks);
-    setBlankAnswer(updatedAnswerWithBlanks);
-  }, [answer, setBlankAnswer]);
+  //   setAnswerWithBlanks(updatedAnswerWithBlanks);
+  //   setBlankAnswer(updatedAnswerWithBlanks);
+  // }, [answer, setBlankAnswer]);
 
   return (
     <div className="flex justify-start w-full mt-4">
       <h1 className="text-xl font-semibold">
         {
-          answerWithBlanks.split(BLANKS).map((part, index) => {
+          answer.split(BLANKS).map((part, index) => {
             return (
               <React.Fragment key={index}>
                 {part}
-                {index === answerWithBlanks.split(BLANKS).length - 1 ? null : (
+                {index === answer.split(BLANKS).length - 1 ? null : (
                   <input
                     disabled={userRole === Role.SPECTATOR}
                     type="text"
