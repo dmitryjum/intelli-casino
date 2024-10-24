@@ -25,7 +25,6 @@ type Props = {
 const OpenEnded = ({ gameId }: Props) => {
   const { userRole } = useUserContext();
   const { game, loading, error, closeGame, finishGame, updateGameQuestion } = useGames({ gameId, userRole });
-  // const [blankAnswer, setBlankAnswer] = React.useState<string>("");
   const {toast} = useToast();
   
   const currentQuestion = React.useMemo(() => {
@@ -107,7 +106,7 @@ const OpenEnded = ({ gameId }: Props) => {
   if (game.timeEnded) {
     return <GameEndedView game={game} />
   }
-  
+  console.log("Current question: ", currentQuestion)
   return (
     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 md:w-[80vw] max-w-4xl w-[90wv]">
       <div className="flex flex-row justify-between">

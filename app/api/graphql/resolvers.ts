@@ -26,7 +26,7 @@ const resolvers: IResolvers = {
           openAt: 'desc',
         },
       });
-      console.log("activeGames:", activeGames);
+      console.log("activeGames Resolver:", activeGames);
       return activeGames;
     },
     game: async (_: any, { gameId }: { gameId: string }) => {
@@ -41,6 +41,9 @@ const resolvers: IResolvers = {
               answer: true,
               userAnswer: true,
               blankedAnswer: true
+            },
+            orderBy: {
+              id: 'asc'
             }
           }
         }
@@ -76,7 +79,6 @@ const resolvers: IResolvers = {
         }
       });
 
-      // publish to pubsub
       pubsub.publish(GAME_UPDATED, { gameUpdated: updatedGame });
 
       return updatedGame;
@@ -104,19 +106,21 @@ const resolvers: IResolvers = {
               answer: true,
               userAnswer: true,
               blankedAnswer: true
+            },
+            orderBy: {
+              id: 'asc'
             }
           }
         }
       });
-      const currentQuestion = updatedGame.questions[updatedData.currentQuestionIndex];
+      const currentQuestion = updatedGame.questions[updatedGame.currentQuestionIndex];
       const blankedAnswer = generateBlankedAnswer(currentQuestion.answer);
       await prisma.question.update({
         where: {id: currentQuestion.id },
         data: { blankedAnswer },
-      })
+      });
+      currentQuestion.blankedAnswer = blankedAnswer;
 
-
-      // publish to pubsub
       pubsub.publish(GAME_UPDATED, { gameUpdated: updatedGame });
 
       return updatedGame;
@@ -144,7 +148,6 @@ const resolvers: IResolvers = {
         }
       })
 
-      // publish to pubsub
       pubsub.publish(GAME_UPDATED, { gameUpdated: updatedGame });
 
       return updatedGame;
@@ -165,17 +168,21 @@ const resolvers: IResolvers = {
               answer: true,
               userAnswer: true,
               blankedAnswer: true
+            },
+            orderBy: {
+              id: 'asc'
             }
           }
         }
       });
 
-      const currentQuestion = updatedGame.questions[updatedGame.currentQuestionIndex];
+      const currentQuestion = updatedGame.questions[currentQuestionIndex];
       const blankedAnswer = generateBlankedAnswer(currentQuestion.answer);
       await prisma.question.update({
         where: { id: currentQuestion.id },
         data: { blankedAnswer },
-      })
+      });
+      currentQuestion.blankedAnswer = blankedAnswer;
 
       pubsub.publish(GAME_UPDATED, { gameUpdated: updatedGame });
 

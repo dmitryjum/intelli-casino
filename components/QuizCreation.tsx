@@ -47,7 +47,7 @@ const QuizCreation = ({ topicParam }: Props) => {
     },
     onError: (error) => {
       toast({
-        title: 'Error',
+        title: 'Open Game Error',
         description: error.message,
         variant: 'destructive'
       })

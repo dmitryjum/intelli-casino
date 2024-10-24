@@ -101,6 +101,8 @@ model Question {
   questionType GameType
   userAnswer String?
   game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
   
   @@index([gameId], name: "question_gameId_idx")
 }
