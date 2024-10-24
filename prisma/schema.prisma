@@ -93,6 +93,7 @@ model Question {
   id String @id @default(cuid())
   question String
   answer String
+  blankedAnswer String @default("")
   gameId String
   options Json? // for mcq questions (multiple choice questions)
   percentageCorrect Float? // for open ended questions (similarity between the user input)
@@ -100,6 +101,8 @@ model Question {
   questionType GameType
   userAnswer String?
   game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
   
   @@index([gameId], name: "question_gameId_idx")
 }

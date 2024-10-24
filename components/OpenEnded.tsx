@@ -25,7 +25,6 @@ type Props = {
 const OpenEnded = ({ gameId }: Props) => {
   const { userRole } = useUserContext();
   const { game, loading, error, closeGame, finishGame, updateGameQuestion } = useGames({ gameId, userRole });
-  const [blankAnswer, setBlankAnswer] = React.useState<string>("");
   const {toast} = useToast();
   
   const currentQuestion = React.useMemo(() => {
@@ -34,7 +33,7 @@ const OpenEnded = ({ gameId }: Props) => {
 
   const {mutate: checkAnswer, isPending: isChecking} = useMutation({
     mutationFn: async() => {
-      let filledAnswer = blankAnswer
+      let filledAnswer = currentQuestion.blankedAnswer;
       document.querySelectorAll("#user-blank-input").forEach(input => {
         filledAnswer = filledAnswer.replace("_____", input.value);
         input.value = "";
@@ -107,7 +106,7 @@ const OpenEnded = ({ gameId }: Props) => {
   if (game.timeEnded) {
     return <GameEndedView game={game} />
   }
-  
+  console.log("Current question: ", currentQuestion)
   return (
     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 md:w-[80vw] max-w-4xl w-[90wv]">
       <div className="flex flex-row justify-between">
@@ -143,8 +142,8 @@ const OpenEnded = ({ gameId }: Props) => {
         </CardHeader>
       </Card>
       <div className="flex flex-col items-center justify-center w-full mt-4">
-        {currentQuestion && currentQuestion.answer ? (
-          <BlankAnswerInput answer={currentQuestion.answer} setBlankAnswer={setBlankAnswer} />
+        {currentQuestion && currentQuestion?.blankedAnswer ? (
+          <BlankAnswerInput answer={currentQuestion.blankedAnswer} />
         ) : (
           <div className="text-red-500">Question data is unavailable.</div>
         )}

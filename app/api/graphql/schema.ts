@@ -34,6 +34,7 @@ const typeDefs = gql`
     options: JSON
     answer: String!
     userAnswer: String
+    blankedAnswer: String
   }
 
   type Query {

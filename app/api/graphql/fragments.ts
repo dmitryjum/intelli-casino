@@ -8,6 +8,7 @@ export const QUESTION_FRAGMENT = gql`
     options
     answer
     userAnswer
+    blankedAnswer
   }
 `;
 

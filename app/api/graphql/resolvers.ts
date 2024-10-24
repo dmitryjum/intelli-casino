@@ -4,6 +4,7 @@ import { IResolvers } from '@graphql-tools/utils';
 import GraphQLJSON from 'graphql-type-json';
 import { GraphQLDateTime } from 'graphql-scalars';
 import { OPEN_DURATION } from '@/lib/constants';
+import { generateBlankedAnswer } from '@/lib/utils';
 
 const pubsub = new PubSub();
 const prisma = new PrismaClient();
@@ -25,7 +26,7 @@ const resolvers: IResolvers = {
           openAt: 'desc',
         },
       });
-      console.log("activeGames:", activeGames);
+      console.log("activeGames Resolver:", activeGames);
       return activeGames;
     },
     game: async (_: any, { gameId }: { gameId: string }) => {
@@ -38,7 +39,11 @@ const resolvers: IResolvers = {
               question: true,
               options: true,
               answer: true,
-              userAnswer: true
+              userAnswer: true,
+              blankedAnswer: true
+            },
+            orderBy: {
+              id: 'asc'
             }
           }
         }
@@ -67,13 +72,13 @@ const resolvers: IResolvers = {
               id: true,
               question: true,
               options: true,
-              answer: true
+              answer: true,
+              blankedAnswer: true
             }
           }
         }
       });
 
-      // publish to pubsub
       pubsub.publish(GAME_UPDATED, { gameUpdated: updatedGame });
 
       return updatedGame;
@@ -99,14 +104,23 @@ const resolvers: IResolvers = {
               question: true,
               options: true,
               answer: true,
-              userAnswer: true
+              userAnswer: true,
+              blankedAnswer: true
+            },
+            orderBy: {
+              id: 'asc'
             }
           }
         }
       });
+      const currentQuestion = updatedGame.questions[updatedGame.currentQuestionIndex];
+      const blankedAnswer = generateBlankedAnswer(currentQuestion.answer);
+      await prisma.question.update({
+        where: {id: currentQuestion.id },
+        data: { blankedAnswer },
+      });
+      currentQuestion.blankedAnswer = blankedAnswer;
 
-
-      // publish to pubsub
       pubsub.publish(GAME_UPDATED, { gameUpdated: updatedGame });
 
       return updatedGame;
@@ -127,19 +141,19 @@ const resolvers: IResolvers = {
               question: true,
               options: true,
               answer: true,
-              userAnswer: true
+              userAnswer: true,
+              blankedAnswer: true
             }
           }
         }
       })
 
-      // publish to pubsub
       pubsub.publish(GAME_UPDATED, { gameUpdated: updatedGame });
 
       return updatedGame;
     },
     updateGameQuestion: async (_: any, { gameId, currentQuestionStartTime, currentQuestionIndex }: { gameId: string, currentQuestionStartTime: string, currentQuestionIndex: number }) => {
-      const updatedGame = await prisma.game.update({
+      let updatedGame = await prisma.game.update({
         where: { id: gameId },
         data: {
           currentQuestionIndex: currentQuestionIndex,
@@ -152,11 +166,23 @@ const resolvers: IResolvers = {
               question: true,
               options: true,
               answer: true,
-              userAnswer: true
+              userAnswer: true,
+              blankedAnswer: true
+            },
+            orderBy: {
+              id: 'asc'
             }
           }
         }
       });
+
+      const currentQuestion = updatedGame.questions[currentQuestionIndex];
+      const blankedAnswer = generateBlankedAnswer(currentQuestion.answer);
+      await prisma.question.update({
+        where: { id: currentQuestion.id },
+        data: { blankedAnswer },
+      });
+      currentQuestion.blankedAnswer = blankedAnswer;
 
       pubsub.publish(GAME_UPDATED, { gameUpdated: updatedGame });
 

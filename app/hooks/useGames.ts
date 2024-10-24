@@ -5,7 +5,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { GameStatus, Game, GameType, Question, Role } from '@prisma/client';
 
 interface GameData {
-  game: Game & { questions: Pick<Question, 'id' | 'question' | 'answer' | 'options' | 'userAnswer'>[] }
+  game: Game & { questions: Pick<Question, 'id' | 'question' | 'answer' | 'options' | 'userAnswer' | 'blankedAnswer'>[] }
 }
 
 interface GetGameQueryArgs {
