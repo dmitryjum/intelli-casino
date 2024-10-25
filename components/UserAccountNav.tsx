@@ -8,6 +8,7 @@ import { useSession } from "next-auth/react";
 import { useMutation } from "@tanstack/react-query";
 import { useUserContext } from "@/app/context/UserContext";
 import axios from 'axios';
+import { usePathname } from 'next/navigation';
 
 type Props = {
   user: Pick<User, "name" | "image" | "email">;
@@ -15,9 +16,9 @@ type Props = {
 
 const UserAccountNav = ({user}: Props) => {
   const { data: session, update: updateSession } = useSession();
-
   const { userRole, setUserRole } = useUserContext();
-
+  const pathname: string = usePathname();
+  const isPlayRoute: boolean = pathname.includes('/play');
   const toggleRoleMutation = useMutation({
     mutationFn: async () => {
       const response = await axios.post('/api/user/toggle-role');
@@ -50,7 +51,7 @@ const UserAccountNav = ({user}: Props) => {
           </div>
         </div>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => toggleRoleMutation.mutate()}>
+        <DropdownMenuItem onClick={() => toggleRoleMutation.mutate()} disabled={isPlayRoute}>
           Toggle Role (Current: {userRole})
         </DropdownMenuItem>
 
