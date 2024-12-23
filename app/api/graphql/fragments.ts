@@ -7,9 +7,30 @@ export const QUESTION_FRAGMENT = gql`
     question
     options
     answer
-    userAnswer
     blankedAnswer
   }
+`;
+
+// Fragment for UserAnswer
+export const USER_ANSWER_FRAGMENT = gql`
+  fragment UserAnswerFields on UserAnswer {
+    id
+    questionId
+    answer
+  }
+`;
+
+// Fragment for Quiz, including Questions
+export const QUIZ_FRAGMENT = gql`
+  fragment QuizFields on Quiz {
+    id
+    topic
+    gameType
+    questions {
+      ...QuestionFields
+    }
+  }
+    ${QUESTION_FRAGMENT}
 `;
 
 // Fragment for Game, including Questions
@@ -17,17 +38,19 @@ export const GAME_FRAGMENT = gql`
   fragment GameFields on Game {
     id
     status
-    topic
-    userId
+    playerId
     openAt
-    gameType
     timeStarted
     timeEnded
     currentQuestionIndex
     currentQuestionStartTime
-    questions {
-      ...QuestionFields
+    quiz {
+      ...QuizFields
+    }
+    userAnswers {
+      ...UserAnswerFields
     }
   }
   ${QUESTION_FRAGMENT}
+  ${USER_ANSWER_FRAGMENT}
 `;

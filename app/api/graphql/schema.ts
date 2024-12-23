@@ -17,15 +17,22 @@ const typeDefs = gql`
   type Game {
     id: ID!
     status: GameStatus!
-    topic: String!
     openAt: DateTime
-    gameType: GameType
-    userId: String
+    playerId: String
     timeStarted: DateTime!
     timeEnded: DateTime
     currentQuestionIndex: Int!
     currentQuestionStartTime: DateTime
+    userAnswers: [UserAnswer]
+  }
+
+  type Quiz {
+    id: ID!
+    topic: String!
+    userId: String
+    gameType: GameType
     questions: [Question!]
+    games: [Game]
   }
 
   type Question {
@@ -35,6 +42,12 @@ const typeDefs = gql`
     answer: String!
     userAnswer: String
     blankedAnswer: String
+  }
+
+  type UserAnswer {
+    id: ID!
+    questionId: String!
+    answer: String
   }
 
   type Query {
