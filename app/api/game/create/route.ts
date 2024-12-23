@@ -22,16 +22,16 @@ export async function POST(req: Request, res: Response) {
     // Check if a Game (topic) already exists
     // (Assuming your schema doesn't enforce a unique constraint on topic,
     // but let's assume you only want the *first* matched game for this topic.)
-    const existingGame = await prisma.game.findUnique({
+    let quiz = await prisma.quiz.findUnique({
       where: { topic },
       select: { id: true }, // no need to fetch everything, just ID
     });
     
-    if (existingGame) {
+    if (quiz) {
       // The topic exists -> check if the user has participated
-      const alreadyPlayedOrSpectated = await prisma.gameInstance.findFirst({
+      const alreadyPlayedOrSpectated = await prisma.game.findFirst({
         where: {
-          gameId: existingGame.id,
+          quizId: quiz.id,
           OR: [
             { playerId: userId },
             { spectators: { some: { id: userId } } },
@@ -48,11 +48,11 @@ export async function POST(req: Request, res: Response) {
         );
       }
 
-      // If user hasn’t played or seen it -> create a new GameInstance
+      // If user hasn’t played or seen it -> create a new Game
       //     (No need to create questions again or call OpenAI)
-      const newGameInstance = await prisma.gameInstance.create({
+      const newGame = await prisma.game.create({
         data: {
-          gameId: existingGame.id,
+          quizId: quiz.id,
           playerId: userId,
           timeStarted: new Date()
         },
@@ -60,12 +60,12 @@ export async function POST(req: Request, res: Response) {
 
       return NextResponse.json({
         message: "Game already exists; created new instance.",
-        gameId: existingGame.id,
-        gameInstanceId: newGameInstance.id,
+        quizId: quiz.id,
+        gameId: newGame.id,
       });
     }
 
-    const game = await prisma.game.create({
+    quiz = await prisma.quiz.create({
       data: {
         gameType: type,
         userId,
@@ -110,7 +110,7 @@ export async function POST(req: Request, res: Response) {
           question: question.question,
           answer: question.answer,
           options: JSON.stringify(options),
-          gameId: game.id, // comes from recently created game db recrod above
+          quizId: quiz.id, // comes from recently created quiz db recod above
           questionType: 'mcq'
         }
       })
@@ -127,7 +127,7 @@ export async function POST(req: Request, res: Response) {
         return {
           question: question.question,
           answer: question.answer,
-          gameId: game.id,
+          quizId: quiz.id,
           questionType: 'open_ended'
         }
       })
@@ -136,10 +136,10 @@ export async function POST(req: Request, res: Response) {
       })
     }
 
-    // Now that the Game + Questions exist, create the new GameInstance
-    const newGameInstance = await prisma.gameInstance.create({
+    // Now that the Quiz + Questions exist, create the new Game
+    const newGame = await prisma.game.create({
       data: {
-        gameId: game.id,
+        quizId: quiz.id,
         playerId: userId,
         timeStarted: new Date(),
       },
@@ -147,8 +147,8 @@ export async function POST(req: Request, res: Response) {
     
     return NextResponse.json({
       message: "Created new game + instance",
-      gameId: game.id,
-      gameInstanceId: newGameInstance.id,
+      quizId: quiz.id,
+      gameId: newGame.id,
     });
   } catch (error: any) {
     if (error instanceof ZodError) {
