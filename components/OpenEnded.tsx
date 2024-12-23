@@ -28,8 +28,8 @@ const OpenEnded = ({ gameId }: Props) => {
   const {toast} = useToast();
   
   const currentQuestion = React.useMemo(() => {
-    return game.questions[game.currentQuestionIndex] || { question: "No question available"}
-  }, [game.currentQuestionIndex, game.questions]);
+    return game.quiz.questions[game.currentQuestionIndex] || { question: "No question available"}
+  }, [game.currentQuestionIndex, game.quiz.questions]);
 
   const {mutate: checkAnswer, isPending: isChecking} = useMutation({
     mutationFn: async() => {
@@ -77,7 +77,7 @@ const OpenEnded = ({ gameId }: Props) => {
         });
       }
     })
-  }, [checkAnswer, toast, isChecking, game.currentQuestionIndex, game.questions.length, finishGame, game.id]);
+  }, [checkAnswer, toast, isChecking, game.currentQuestionIndex, game.quiz.questions.length, finishGame, game.id]);
 
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -134,7 +134,7 @@ const OpenEnded = ({ gameId }: Props) => {
         <CardHeader className='flex flex-row -items-center'>
           <CardTitle className="mr-5 text-center divide-y divide-zinc-600/50">
             <div>{game.currentQuestionIndex + 1}</div>
-            <div className="text-base text-slate-400">{game.questions.length}</div>
+            <div className="text-base text-slate-400">{game.quiz.questions.length}</div>
           </CardTitle>
           <CardDescription className="flex-grow text-lg">
             {currentQuestion.question}
