@@ -1,29 +1,30 @@
 "use client"
-import { Game } from '@prisma/client'
+// import { Game } from '@prisma/client'
 import React from 'react'
 import { useSubscription, useQuery} from '@apollo/client'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { GET_ACTIVE_GAMES, GAME_UPDATED } from '@/app/api/graphql/operations'
+import { GameData } from '../types/gameData'
 import Link from 'next/link'
 
 type Props = {}
 
 const ActiveGames = (props: Props) => {
   // Fetch initial active games using useQuery
-  const { data, loading, error } = useQuery<{ activeGames: Game[] }>(GET_ACTIVE_GAMES, {
+  const { data, loading, error } = useQuery<{ activeGames: GameData[] }>(GET_ACTIVE_GAMES, {
     fetchPolicy: 'cache-and-network',
   });
-  const activeGames: Game[] = data?.activeGames || []
+  const activeGames: GameData[] = data?.activeGames || []
 
   // Subscribe to activeGamesUpdated using useSubscription
-  useSubscription<{ gameUpdated: Game }>(GAME_UPDATED, {
+  useSubscription<{ gameUpdated: GameData }>(GAME_UPDATED, {
     variables: {},
     onData: ({ client, data }) => {
       if (!data) return;
       const updatedGame = data.data?.gameUpdated;
       if (!updatedGame) return;
-      const gameIndex = activeGames.findIndex(game => game.id === updatedGame.id);
-      if (gameIndex > -1 && updatedGame.status !== 'FINISHED') {
+      const gameIndex = activeGames.findIndex(gameData => gameData.game.id === updatedGame.game.id);
+      if (gameIndex > -1 && updatedGame.game.status !== 'FINISHED') {
         const updatedActiveGames = [...activeGames];
         updatedActiveGames[gameIndex] = updatedGame;
         
@@ -38,7 +39,7 @@ const ActiveGames = (props: Props) => {
           client.writeQuery({
             query: GET_ACTIVE_GAMES,
             data: {
-              activeGames: activeGames.filter(game => game.id !== updatedGame.id),
+              activeGames: activeGames.filter(gameData => gameData.game.id !== updatedGame.game.id),
             },
           });
         }
@@ -86,22 +87,22 @@ const ActiveGames = (props: Props) => {
             </tr>
           </thead>
           <tbody>
-            {activeGames.map((game) => (
-              <tr key={game.id} className="hover:bg-gray-100">
+            {activeGames.map((gameData) => (
+              <tr key={gameData.game.id} className="hover:bg-gray-100">
                 <td className="border px-4 py-2">
-                  <Link href={`/play/${game.gameType.replace(/_/g, '-')}/${game.id}`} className="text-blue-500 hover:underline">
-                    {game.topic}
+                  <Link href={`/play/${gameData.game.quiz.gameType.replace(/_/g, '-')}/${gameData.game.id}`} className="text-blue-500 hover:underline">
+                    {gameData.game.quiz.topic}
                   </Link>
                 </td>
                 <td className="border px-4 py-2">
                   <span
                     className={
-                      game.status === 'OPEN'
+                      gameData.game.status === 'OPEN'
                         ? 'px-2 py-1 text-green-800 bg-green-200 rounded'
                         : 'px-2 py-1 text-yellow-800 bg-yellow-200 rounded'
                     }
                   >
-                    {game.status}
+                    {gameData.game.status}
                   </span>
                 </td>
               </tr>

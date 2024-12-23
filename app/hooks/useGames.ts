@@ -1,40 +1,40 @@
 import { CLOSE_GAME, FINISH_GAME, GAME_UPDATED, UPDATE_GAME_QUESTION, GET_GAME, OPEN_GAME } from '@/app/api/graphql/operations';
 import { useMutation, useSubscription, useQuery } from '@apollo/client';
 import { useToast } from '@/components/ui/use-toast';
-
+import { GameData } from '../types/gameData';
 import { GameStatus, Game, GameType, Question, Role} from '@prisma/client';
 
 // interface GameData {
 //   game: Game & { questions: Pick<Question, 'id' | 'question' | 'answer' | 'options' | 'blankedAnswer'>[] }
 // }
 
-type GameData = {
-  game: {
-    id: string;
-    playerId: string;
-    status: GameStatus;
-    openAt?: Date;
-    currentQuestionIndex: number;
-    currentQuestionStartTime: Date;
-    timeStarted: Date;
-    timeEnded?: Date;
-    quiz: {
-      topic: string;
-      gameType: GameType;
-      questions: {
-        id: string;
-        question: string;
-        answer: string;
-        options?: any;
-        blankedAnswer: string;
-      }[];
-    };
-    userAnswers: {
-      questionId: string;
-      answer: string;
-    }[];
-  };
-};
+// type GameData = {
+//   game: {
+//     id: string;
+//     playerId: string;
+//     status: GameStatus;
+//     openAt?: Date;
+//     currentQuestionIndex: number;
+//     currentQuestionStartTime: Date;
+//     timeStarted: Date;
+//     timeEnded?: Date;
+//     quiz: {
+//       topic: string;
+//       gameType: GameType;
+//       questions: {
+//         id: string;
+//         question: string;
+//         answer: string;
+//         options?: any;
+//         blankedAnswer: string;
+//       }[];
+//     };
+//     userAnswers: {
+//       questionId: string;
+//       answer: string;
+//     }[];
+//   };
+// };
 
 interface GetGameQueryArgs {
   gameId: string

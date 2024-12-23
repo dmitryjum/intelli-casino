@@ -33,17 +33,22 @@ const resolvers: IResolvers = {
       return prisma.game.findUnique({
         where: { id: gameId },
         include: {
-          questions: {
+          quiz: {
             select: {
-              id: true,
-              question: true,
-              options: true,
-              answer: true,
-              userAnswer: true,
-              blankedAnswer: true
-            },
-            orderBy: {
-              id: 'asc'
+              topic: true,
+              gameType: true,
+              questions: {
+                select: {
+                  id: true,
+                  question: true,
+                  options: true,
+                  answer: true,
+                  blankedAnswer: true
+                },
+                orderBy: {
+                  id: 'asc'
+                }
+              }
             }
           }
         }
@@ -67,13 +72,22 @@ const resolvers: IResolvers = {
         where: { id: gameId },
         data: updatedData,
         include: {
-          questions: {
+          quiz: {
             select: {
-              id: true,
-              question: true,
-              options: true,
-              answer: true,
-              blankedAnswer: true
+              topic: true,
+              gameType: true,
+              questions: {
+                select: {
+                  id: true,
+                  question: true,
+                  options: true,
+                  answer: true,
+                  blankedAnswer: true
+                },
+                orderBy: {
+                  id: 'asc'
+                }
+              }
             }
           }
         }
@@ -98,17 +112,22 @@ const resolvers: IResolvers = {
         where: { id: gameId },
         data: updatedData,
         include: {
-          questions: {
+          quiz: {
             select: {
-              id: true,
-              question: true,
-              options: true,
-              answer: true,
-              userAnswer: true,
-              blankedAnswer: true
-            },
-            orderBy: {
-              id: 'asc'
+              topic: true,
+              gameType: true,
+              questions: {
+                select: {
+                  id: true,
+                  question: true,
+                  options: true,
+                  answer: true,
+                  blankedAnswer: true
+                },
+                orderBy: {
+                  id: 'asc'
+                }
+              }
             }
           }
         }
@@ -135,16 +154,28 @@ const resolvers: IResolvers = {
           currentQuestionStartTime: null
         },
         include: {
-          questions: {
+          quiz: {
             select: {
-              id: true,
-              question: true,
-              options: true,
+              topic: true,
+              gameType: true,
+              questions: {
+                select: {
+                  id: true,
+                  question: true,
+                  options: true,
+                  answer: true,
+                  blankedAnswer: true,
+                },
+              },
+            },
+          },
+          userAnswers: {
+            select: {
+              questionId: true,
               answer: true,
-              userAnswer: true,
-              blankedAnswer: true
-            }
-          }
+              userId: true,
+            },
+          },
         }
       })
 
@@ -160,23 +191,32 @@ const resolvers: IResolvers = {
           currentQuestionStartTime: new Date(currentQuestionStartTime),
         },
         include: {
-          questions: {
+          quiz: {
             select: {
-              id: true,
-              question: true,
-              options: true,
-              answer: true,
-              userAnswer: true,
-              blankedAnswer: true
+              topic: true,
+              gameType: true,
+              questions: {
+                select: {
+                  id: true,
+                  question: true,
+                  options: true,
+                  answer: true,
+                  blankedAnswer: true,
+                },
+              },
             },
-            orderBy: {
-              id: 'asc'
-            }
-          }
+          },
+          userAnswers: {
+            select: {
+              questionId: true,
+              answer: true,
+              userId: true,
+            },
+          },
         }
       });
 
-      const currentQuestion = updatedGame.questions[currentQuestionIndex];
+      const currentQuestion = updatedGame.quiz.questions[currentQuestionIndex];
       const blankedAnswer = generateBlankedAnswer(currentQuestion.answer);
       await prisma.question.update({
         where: { id: currentQuestion.id },
