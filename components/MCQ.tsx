@@ -39,6 +39,8 @@ const MCQ = ({ gameId }: Props) => {
       const payload: z.infer<typeof checkAnswerSchema> = {
         questionId: currentQuestion.id,
         userAnswer: options[selectedChoice],
+        gameId: game.id,
+        userId: game.playerId
       }
       const response = await axios.post('/api/checkAnswer', payload);
       return response.data

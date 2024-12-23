@@ -41,6 +41,8 @@ const OpenEnded = ({ gameId }: Props) => {
       const payload: z.infer<typeof checkAnswerSchema> = {
         questionId: currentQuestion.id,
         userAnswer: filledAnswer,
+        gameId: game.id,
+        userId: game.playerId
       }
       const response = await axios.post('/api/checkAnswer', payload);
       return response.data
