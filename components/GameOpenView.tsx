@@ -4,7 +4,6 @@ import { OPEN_DURATION } from '@/lib/constants';
 import { handleCountdownComplete } from '@/lib/utils';
 import { useToast } from './ui/use-toast';
 import { Timer } from 'lucide-react';
-import { Game } from '@prisma/client'; 
 
 type Props = {
   gameId: string;
