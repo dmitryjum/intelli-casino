@@ -55,7 +55,7 @@ const OpenEnded = ({ gameId }: Props) => {
           title: `Your answer is ${percentageSimilar}% similar to the correct answer`,
           description: "Answers are matched based on similarity comparisons",
         })  
-        if (game.currentQuestionIndex === game.questions.length -1) {
+        if (game.currentQuestionIndex === game.quiz.questions.length -1) {
           const currentTime = new Date()
           finishGame({variables: {gameId: game.id, timeEnded: currentTime}})
           .catch((error) => {
@@ -100,11 +100,11 @@ const OpenEnded = ({ gameId }: Props) => {
   if (error) return <div>Error: {error.message}</div>
 
   if (game.status === GameStatus.OPEN) {
-    return <GameOpenView gameId={gameId} game={game} closeGame={closeGame} />;
+    return <GameOpenView gameId={gameId} timeStarted={game.timeStarted} openAt={game.openAt} closeGame={closeGame} />;
   }
 
   if (game.timeEnded) {
-    return <GameEndedView game={game} />
+    return <GameEndedView timeStarted={game.timeStarted} gameId={game.id} />
   }
   console.log("Current question: ", currentQuestion)
   return (

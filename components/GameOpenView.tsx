@@ -8,11 +8,12 @@ import { Game } from '@prisma/client';
 
 type Props = {
   gameId: string;
-  game: Game;
+  timeStarted: Date;
+  openAt: Date;
   closeGame: Function;
 };
 
-const GameOpenView: React.FC<Props> = ({ gameId, game, closeGame }) => {
+const GameOpenView: React.FC<Props> = ({ gameId, timeStarted, openAt, closeGame }) => {
   const { toast } = useToast();
 
   const onCountdownComplete = React.useCallback(() => {
@@ -26,9 +27,9 @@ const GameOpenView: React.FC<Props> = ({ gameId, game, closeGame }) => {
       </div>
       <div className="mt-4">
         <StartTimer
-          key={new Date(game.timeStarted).getTime()}
+          key={new Date(timeStarted).getTime()}
           duration={OPEN_DURATION}
-          startAt={game.openAt}
+          startAt={openAt}
           onTimerEnd={onCountdownComplete}
         >
           {(timeLeft) => (

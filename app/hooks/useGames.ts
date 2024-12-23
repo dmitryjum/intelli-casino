@@ -2,11 +2,39 @@ import { CLOSE_GAME, FINISH_GAME, GAME_UPDATED, UPDATE_GAME_QUESTION, GET_GAME, 
 import { useMutation, useSubscription, useQuery } from '@apollo/client';
 import { useToast } from '@/components/ui/use-toast';
 
-import { GameStatus, Game, GameType, Question, Role } from '@prisma/client';
+import { GameStatus, Game, GameType, Question, Role} from '@prisma/client';
 
-interface GameData {
-  game: Game & { questions: Pick<Question, 'id' | 'question' | 'answer' | 'options' | 'userAnswer' | 'blankedAnswer'>[] }
-}
+// interface GameData {
+//   game: Game & { questions: Pick<Question, 'id' | 'question' | 'answer' | 'options' | 'blankedAnswer'>[] }
+// }
+
+type GameData = {
+  game: {
+    id: string;
+    playerId: string;
+    status: GameStatus;
+    openAt?: Date;
+    currentQuestionIndex: number;
+    currentQuestionStartTime: Date;
+    timeStarted: Date;
+    timeEnded?: Date;
+    quiz: {
+      topic: string;
+      gameType: GameType;
+      questions: {
+        id: string;
+        question: string;
+        answer: string;
+        options?: any;
+        blankedAnswer: string;
+      }[];
+    };
+    userAnswers: {
+      questionId: string;
+      answer: string;
+    }[];
+  };
+};
 
 interface GetGameQueryArgs {
   gameId: string
@@ -26,17 +54,21 @@ const useGames = ({ gameId, userRole }: Props) => {
 
   const game = {
     id: data?.game.id || '',
-    userId: data?.game.userId || '',
+    playerId: data?.game.playerId || '',
     status: data?.game.status || GameStatus.OPEN,
     openAt: data?.game.openAt || null,
     timeStarted: data?.game.timeStarted || new Date(),
-    topic: data?.game.topic || '',
+    topic: data?.game.quiz.topic || '',
     timeEnded: data?.game.timeEnded || null,
-    gameType: data?.game.gameType || GameType.open_ended,
+    gameType: data?.game.quiz.gameType || GameType.open_ended,
     currentQuestionIndex: data?.game.currentQuestionIndex || 0,
     currentQuestionStartTime: data?.game.currentQuestionStartTime || null,
-    questions: data?.game.questions || []
+    questions: data?.game.quiz.questions || [],
+    userAnswers: data?.game.userAnswers || [],
+    quiz: data?.game.quiz || {questions: []}
   };
+
+  // const game = data?.game;
 
   const [openGame, {loading: openGameLoading, error: openGameError}] = useMutation(OPEN_GAME, {
     update(cache, { data }) {
@@ -83,11 +115,11 @@ const useGames = ({ gameId, userRole }: Props) => {
     },
   });
 
-  useSubscription<{ gameUpdated: Game & { questions: Pick<Question, 'id' | 'question' | 'answer' | 'options' | 'userAnswer'>[] }}>(GAME_UPDATED, {
+  useSubscription<{ gameUpdated: GameData }>(GAME_UPDATED, {
     variables: { gameId },
     onData: ({ client, data }) => {
       if (!data?.data?.gameUpdated) return;
-      const updatedGame = data.data.gameUpdated;
+      const updatedGame = data.data.gameUpdated.game;
 
       // Update the cache with the new game data
       client.writeQuery({
@@ -103,18 +135,21 @@ const useGames = ({ gameId, userRole }: Props) => {
 
         // Determine if the game has just finished
         if (updatedGame.status === GameStatus.FINISHED) {
-          previousQuestion = updatedGame.questions[updatedGame.currentQuestionIndex];
+          previousQuestion = updatedGame.quiz.questions[updatedGame.currentQuestionIndex];
         } else if (updatedGame.currentQuestionIndex > 0 && updatedGame.status === GameStatus.CLOSED) {
           // If the currentQuestionIndex is greater than 0, a question has been answered
-          previousQuestion = updatedGame.questions[updatedGame.currentQuestionIndex - 1];
+          previousQuestion = updatedGame.quiz.questions[updatedGame.currentQuestionIndex - 1];
         }
 
         // Show toast with correct answer and user answer for the previous question
         if (previousQuestion) {
-          const correct: boolean = previousQuestion.userAnswer == previousQuestion.answer
+          const userAnswer = updatedGame.userAnswers.find(
+            (ua) => ua.questionId === previousQuestion.id
+          )?.answer;
+          const correct: boolean = userAnswer == previousQuestion.answer
           toast({
             title: "Player's last question answer",
-            description: previousQuestion.userAnswer || 'No answer available',
+            description: userAnswer || 'No answer available',
             titleTwo: "Correct Answer",
             descriptionTwo: previousQuestion.answer || 'No answer available',
             toastremovedelay: 7000,
