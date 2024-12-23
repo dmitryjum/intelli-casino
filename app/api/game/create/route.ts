@@ -14,13 +14,61 @@ export async function POST(req: Request, res: Response) {
         error: "You must be logged in"
       }, { status: 401 });
     }
+    const { id: userId } = session.user;
+
     const body = await req.json();
-    const {amount, topic, type} = quizCreationSchema.parse(body); // fits the request params into quiz creation schema and destructures it to create a new Game db record
+    // fits the request params into quiz creation schema and destructures it to create a new Game db record
+    const {amount, topic, type} = quizCreationSchema.parse(body);
+    // Check if a Game (topic) already exists
+    // (Assuming your schema doesn't enforce a unique constraint on topic,
+    // but let's assume you only want the *first* matched game for this topic.)
+    const existingGame = await prisma.game.findUnique({
+      where: { topic },
+      select: { id: true }, // no need to fetch everything, just ID
+    });
+    
+    if (existingGame) {
+      // The topic exists -> check if the user has participated
+      const alreadyPlayedOrSpectated = await prisma.gameInstance.findFirst({
+        where: {
+          gameId: existingGame.id,
+          OR: [
+            { playerId: userId },
+            { spectators: { some: { id: userId } } },
+          ],
+        },
+        select: { id: true },
+      });
+
+      if (alreadyPlayedOrSpectated) {
+        // The user has already played or watched -> block
+        return NextResponse.json(
+          { error: "You have already played or spectated this topic" },
+          { status: 400 }
+        );
+      }
+
+      // If user hasn’t played or seen it -> create a new GameInstance
+      //     (No need to create questions again or call OpenAI)
+      const newGameInstance = await prisma.gameInstance.create({
+        data: {
+          gameId: existingGame.id,
+          playerId: userId,
+          timeStarted: new Date()
+        },
+      });
+
+      return NextResponse.json({
+        message: "Game already exists; created new instance.",
+        gameId: existingGame.id,
+        gameInstanceId: newGameInstance.id,
+      });
+    }
+
     const game = await prisma.game.create({
       data: {
         gameType: type,
-        timeStarted: new Date().toISOString(),
-        userId: session.user.id,
+        userId,
         topic
       }
     });
@@ -40,7 +88,8 @@ export async function POST(req: Request, res: Response) {
       }
     });
 
-    const {data} = await axios.post(`${process.env.API_URL}/api/questions`, { // gets a set of questions from Open AI
+    // gets a set of questions from Open AI
+    const {data} = await axios.post(`${process.env.API_URL}/api/questions`, {
       amount,
       topic,
       type
@@ -86,15 +135,26 @@ export async function POST(req: Request, res: Response) {
         data: manyData
       })
     }
+
+    // Now that the Game + Questions exist, create the new GameInstance
+    const newGameInstance = await prisma.gameInstance.create({
+      data: {
+        gameId: game.id,
+        playerId: userId,
+        timeStarted: new Date(),
+      },
+    });
     
     return NextResponse.json({
-      gameId: game.id
+      message: "Created new game + instance",
+      gameId: game.id,
+      gameInstanceId: newGameInstance.id,
     });
   } catch (error: any) {
     if (error instanceof ZodError) {
       return NextResponse.json({ error: error.issues }, { status: 400 });
     } else {
-      console.error("unknown error while creating game schema", error);
+      console.error("unknown error while creating game/instance", error);
       return NextResponse.json({ error: error }, { status: 500 })
     }
   }
