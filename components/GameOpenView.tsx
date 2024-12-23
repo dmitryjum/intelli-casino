@@ -9,7 +9,7 @@ import { Game } from '@prisma/client';
 type Props = {
   gameId: string;
   timeStarted: Date;
-  openAt: Date;
+  openAt: Date | null;
   closeGame: Function;
 };
 

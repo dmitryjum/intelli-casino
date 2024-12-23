@@ -31,8 +31,8 @@ const MCQ = ({ gameId }: Props) => {
   const {toast} = useToast();
 
   const currentQuestion = React.useMemo(() => {
-    return game.questions[game.currentQuestionIndex] || { question: "No question available"}
-  }, [game.currentQuestionIndex, game.questions]);
+    return game.quiz.questions[game.currentQuestionIndex] || { question: "No question available"}
+  }, [game.currentQuestionIndex, game.quiz.questions]);
 
   const {mutate: checkAnswer, isPending: isChecking} = useMutation({
     mutationFn: async() => {
@@ -85,7 +85,7 @@ const MCQ = ({ gameId }: Props) => {
         });
       }
     })
-  }, [checkAnswer, toast, isChecking, game.currentQuestionIndex, game.questions.length, finishGame, game.id]);
+  }, [checkAnswer, toast, isChecking, game.currentQuestionIndex, game.quiz.questions.length, finishGame, game.id]);
 
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -123,11 +123,11 @@ const MCQ = ({ gameId }: Props) => {
   if (error) return <div>Error: {error.message}</div>
 
   if (game.status === GameStatus.OPEN) {
-    return <GameOpenView gameId={gameId} game={game} closeGame={closeGame} />;
+    return <GameOpenView gameId={gameId} timeStarted={game.timeStarted} openAt={game.openAt} closeGame={closeGame} />;
   }
 
   if (game.timeEnded) {
-    return <GameEndedView game={game} />
+    return <GameEndedView timeStarted={game.timeStarted} gameId={game.id} />
   }
   
   return (
@@ -137,7 +137,7 @@ const MCQ = ({ gameId }: Props) => {
           {/* topic */}
           <p>
             <span className="mr-2 text-slate-400">Topic</span>
-            <span className="px-2 py-1 text-white rounded-lg bg-slate-800">{game.topic}</span>
+            <span className="px-2 py-1 text-white rounded-lg bg-slate-800">{game.quiz.topic}</span>
           </p>
           <StartTimer
             key={new Date(game.currentQuestionStartTime).getTime()} // Reset for each question
@@ -159,7 +159,7 @@ const MCQ = ({ gameId }: Props) => {
         <CardHeader className='flex flex-row -items-center'>
           <CardTitle className="mr-5 text-center divide-y divide-zinc-600/50">
             <div>{game.currentQuestionIndex + 1}</div>
-            <div className="text-base text-slate-400">{game.questions.length}</div>
+            <div className="text-base text-slate-400">{game.quiz.questions.length}</div>
           </CardTitle>
           <CardDescription className="flex-grow text-lg">
             {currentQuestion.question}
