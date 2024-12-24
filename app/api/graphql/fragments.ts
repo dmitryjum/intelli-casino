@@ -54,6 +54,6 @@ export const GAME_FRAGMENT = gql`
       id
     }
   }
-  ${QUESTION_FRAGMENT}
+  ${QUIZ_FRAGMENT}
   ${USER_ANSWER_FRAGMENT}
 `;

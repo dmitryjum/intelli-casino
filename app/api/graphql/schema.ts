@@ -27,6 +27,7 @@ const typeDefs = gql`
     timeEnded: DateTime
     currentQuestionIndex: Int!
     currentQuestionStartTime: DateTime
+    quiz: Quiz!
     userAnswers: [UserAnswer]
     spectators: [User]
   }
