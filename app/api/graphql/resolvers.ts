@@ -25,12 +25,21 @@ const resolvers: IResolvers = {
         orderBy: {
           openAt: 'desc',
         },
+        include: {
+          quiz: {
+            select: {
+              id: true,
+              topic: true,
+              gameType: true,
+            },
+          }
+        }
       });
       console.log("activeGames Resolver:", activeGames);
       return activeGames;
     },
     game: async (_: any, { gameId }: { gameId: string }) => {
-      return prisma.game.findUnique({
+      const game = await prisma.game.findUnique({
         where: { id: gameId },
         include: {
           spectators: {
@@ -40,6 +49,7 @@ const resolvers: IResolvers = {
           },
           quiz: {
             select: {
+              id: true,
               topic: true,
               gameType: true,
               questions: {
@@ -48,16 +58,26 @@ const resolvers: IResolvers = {
                   question: true,
                   options: true,
                   answer: true,
-                  blankedAnswer: true
+                  blankedAnswer: true,
                 },
                 orderBy: {
                   id: 'asc'
                 }
-              }
-            }
-          }
+              },
+            },
+          },
+          userAnswers: {
+            select: {
+              id: true,
+              questionId: true,
+              answer: true,
+              userId: true,
+            },
+          },
         }
       });
+      console.log("get game: ", game);
+      return game;
     },
   },
   Mutation: {
@@ -77,8 +97,14 @@ const resolvers: IResolvers = {
         where: { id: gameId },
         data: updatedData,
         include: {
+          spectators: {
+            select: {
+              id: true
+            }
+          },
           quiz: {
             select: {
+              id: true,
               topic: true,
               gameType: true,
               questions: {
@@ -87,14 +113,22 @@ const resolvers: IResolvers = {
                   question: true,
                   options: true,
                   answer: true,
-                  blankedAnswer: true
+                  blankedAnswer: true,
                 },
                 orderBy: {
                   id: 'asc'
                 }
-              }
-            }
-          }
+              },
+            },
+          },
+          userAnswers: {
+            select: {
+              id: true,
+              questionId: true,
+              answer: true,
+              userId: true,
+            },
+          },
         }
       });
 
@@ -124,6 +158,7 @@ const resolvers: IResolvers = {
           },
           quiz: {
             select: {
+              id: true,
               topic: true,
               gameType: true,
               questions: {
@@ -132,14 +167,22 @@ const resolvers: IResolvers = {
                   question: true,
                   options: true,
                   answer: true,
-                  blankedAnswer: true
+                  blankedAnswer: true,
                 },
                 orderBy: {
                   id: 'asc'
                 }
-              }
-            }
-          }
+              },
+            },
+          },
+          userAnswers: {
+            select: {
+              id: true,
+              questionId: true,
+              answer: true,
+              userId: true,
+            },
+          },
         }
       });
       const currentQuestion = updatedGame.quiz.questions[updatedGame.currentQuestionIndex];
@@ -171,6 +214,7 @@ const resolvers: IResolvers = {
           },
           quiz: {
             select: {
+              id: true,
               topic: true,
               gameType: true,
               questions: {
@@ -181,11 +225,15 @@ const resolvers: IResolvers = {
                   answer: true,
                   blankedAnswer: true,
                 },
+                orderBy: {
+                  id: 'asc'
+                }
               },
             },
           },
           userAnswers: {
             select: {
+              id: true,
               questionId: true,
               answer: true,
               userId: true,
@@ -213,6 +261,7 @@ const resolvers: IResolvers = {
           },
           quiz: {
             select: {
+              id: true,
               topic: true,
               gameType: true,
               questions: {
@@ -223,11 +272,15 @@ const resolvers: IResolvers = {
                   answer: true,
                   blankedAnswer: true,
                 },
+                orderBy: {
+                  id: 'asc'
+                }
               },
             },
           },
           userAnswers: {
             select: {
+              id: true,
               questionId: true,
               answer: true,
               userId: true,
@@ -276,6 +329,7 @@ const resolvers: IResolvers = {
             },
             quiz: {
               select: {
+                id: true,
                 topic: true,
                 gameType: true,
                 questions: {
@@ -286,11 +340,15 @@ const resolvers: IResolvers = {
                     answer: true,
                     blankedAnswer: true,
                   },
+                  orderBy: {
+                    id: 'asc'
+                  }
                 },
               },
             },
             userAnswers: {
               select: {
+                id: true,
                 questionId: true,
                 answer: true,
                 userId: true,

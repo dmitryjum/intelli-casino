@@ -54,6 +54,7 @@ const typeDefs = gql`
     id: ID!
     questionId: String!
     answer: String
+    userId: String!
   }
 
   type Query {

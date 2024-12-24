@@ -53,7 +53,7 @@ export async function POST(req: Request, res: Response) {
     });
 
     return NextResponse.json(
-      { isCorrect, percentageCorrect },
+      { isCorrect, percentageSimilar: percentageCorrect },
       { status: 200}
     )
     // if(question.questionType === 'mcq') {

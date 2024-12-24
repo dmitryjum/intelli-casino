@@ -15,7 +15,7 @@ const ActiveGames = (props: Props) => {
     fetchPolicy: 'cache-and-network',
   });
   const activeGames: GameData[] = data?.activeGames || []
-
+  console.log(error);
   // Subscribe to activeGamesUpdated using useSubscription
   useSubscription<{ gameUpdated: GameData }>(GAME_UPDATED, {
     variables: {},

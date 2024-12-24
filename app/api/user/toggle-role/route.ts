@@ -17,7 +17,8 @@ export async function POST() {
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
     })
-
+    console.log("User: ", user);
+    console.log("session: ", session)
     if (!user) {
       return NextResponse.json(
         { error: "User not found." },
