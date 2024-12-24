@@ -11,21 +11,24 @@ type Props = {}
 
 const ActiveGames = (props: Props) => {
   // Fetch initial active games using useQuery
-  const { data, loading, error } = useQuery<{ activeGames: GameData[] }>(GET_ACTIVE_GAMES, {
+  const { data, loading, error } = useQuery<{ activeGames: GameData['game'][] }>(GET_ACTIVE_GAMES, {
     fetchPolicy: 'cache-and-network',
   });
-  const activeGames: GameData[] = data?.activeGames || []
-  console.log(error);
+  
+  const activeGames: GameData['game'][] = data?.activeGames || []
   // Subscribe to activeGamesUpdated using useSubscription
-  useSubscription<{ gameUpdated: GameData }>(GAME_UPDATED, {
+  useSubscription<{ gameUpdated: GameData['game'] }>(GAME_UPDATED, {
     variables: {},
     onData: ({ client, data }) => {
       if (!data) return;
       const updatedGame = data.data?.gameUpdated;
       if (!updatedGame) return;
-      const gameIndex = activeGames.findIndex(gameData => gameData.game.id === updatedGame.game.id);
-      if (gameIndex > -1 && updatedGame.game.status !== 'FINISHED') {
+
+      const gameIndex = activeGames.findIndex(gameData => gameData.id === updatedGame.id);
+      // if the game is already in the active games list and the status isn't finished
+      if (gameIndex > -1 && updatedGame.status !== 'FINISHED') {
         const updatedActiveGames = [...activeGames];
+        // replace the game in the list and don't mutate it
         updatedActiveGames[gameIndex] = updatedGame;
         
         client.writeQuery({
@@ -34,16 +37,18 @@ const ActiveGames = (props: Props) => {
             activeGames: updatedActiveGames,
           },
         });
-      } else if (gameIndex > -1) {
+      } else if (gameIndex > -1) { // if the game is in the active games list and it's finished
         if (gameIndex > -1) {
           client.writeQuery({
             query: GET_ACTIVE_GAMES,
             data: {
-              activeGames: activeGames.filter(gameData => gameData.game.id !== updatedGame.game.id),
+              // return all the active games except the current one
+              activeGames: activeGames.filter(gameData => gameData.id !== updatedGame.id),
             },
           });
         }
       } else {
+        // the gameIndex is -1, so it isn't in the list -> add the game
         client.writeQuery({
           query: GET_ACTIVE_GAMES,
           data: {
@@ -88,21 +93,21 @@ const ActiveGames = (props: Props) => {
           </thead>
           <tbody>
             {activeGames.map((gameData) => (
-              <tr key={gameData.game.id} className="hover:bg-gray-100">
+              <tr key={gameData.id} className="hover:bg-gray-100">
                 <td className="border px-4 py-2">
-                  <Link href={`/play/${gameData.game.quiz.gameType.replace(/_/g, '-')}/${gameData.game.id}`} className="text-blue-500 hover:underline">
-                    {gameData.game.quiz.topic}
+                  <Link href={`/play/${gameData.quiz.gameType.replace(/_/g, '-')}/${gameData.id}`} className="text-blue-500 hover:underline">
+                    {gameData.quiz.topic}
                   </Link>
                 </td>
                 <td className="border px-4 py-2">
                   <span
                     className={
-                      gameData.game.status === 'OPEN'
+                      gameData.status === 'OPEN'
                         ? 'px-2 py-1 text-green-800 bg-green-200 rounded'
                         : 'px-2 py-1 text-yellow-800 bg-yellow-200 rounded'
                     }
                   >
-                    {gameData.game.status}
+                    {gameData.status}
                   </span>
                 </td>
               </tr>

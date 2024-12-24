@@ -4,38 +4,6 @@ import { useToast } from '@/components/ui/use-toast';
 import { GameData } from '../types/gameData';
 import { GameStatus, Game, GameType, Question, Role} from '@prisma/client';
 
-// interface GameData {
-//   game: Game & { questions: Pick<Question, 'id' | 'question' | 'answer' | 'options' | 'blankedAnswer'>[] }
-// }
-
-// type GameData = {
-//   game: {
-//     id: string;
-//     playerId: string;
-//     status: GameStatus;
-//     openAt?: Date;
-//     currentQuestionIndex: number;
-//     currentQuestionStartTime: Date;
-//     timeStarted: Date;
-//     timeEnded?: Date;
-//     quiz: {
-//       topic: string;
-//       gameType: GameType;
-//       questions: {
-//         id: string;
-//         question: string;
-//         answer: string;
-//         options?: any;
-//         blankedAnswer: string;
-//       }[];
-//     };
-//     userAnswers: {
-//       questionId: string;
-//       answer: string;
-//     }[];
-//   };
-// };
-
 interface GetGameQueryArgs {
   gameId: string
 }
@@ -51,7 +19,7 @@ const useGames = ({ gameId, userRole }: Props) => {
     variables: { gameId },
     fetchPolicy: 'cache-and-network',
   });
-
+  
   const game = {
     id: data?.game.id || '',
     playerId: data?.game.playerId || '',
@@ -127,11 +95,11 @@ const useGames = ({ gameId, userRole }: Props) => {
     },
   }) 
 
-  useSubscription<{ gameUpdated: GameData }>(GAME_UPDATED, {
+  useSubscription<{ gameUpdated: GameData['game'] }>(GAME_UPDATED, {
     variables: { gameId },
-    onData: ({ client, data }) => {
+    onData: ({ client, data}) => {
       if (!data?.data?.gameUpdated) return;
-      const updatedGame = data.data.gameUpdated.game;
+      const updatedGame = data.data.gameUpdated
 
       // Update the cache with the new game data
       client.writeQuery({

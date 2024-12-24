@@ -35,7 +35,7 @@ const resolvers: IResolvers = {
           }
         }
       });
-      console.log("activeGames Resolver:", activeGames);
+      
       return activeGames;
     },
     game: async (_: any, { gameId }: { gameId: string }) => {
@@ -76,7 +76,6 @@ const resolvers: IResolvers = {
           },
         }
       });
-      console.log("get game: ", game);
       return game;
     },
   },
@@ -358,7 +357,7 @@ const resolvers: IResolvers = {
         });
 
         pubsub.publish(GAME_UPDATED, { gameUpdated: updatedGame });
-        return updatedGame;
+        return updatedGame
       } catch (error) {
         console.error("Error adding spectator to game: ", error);
         throw new Error("Failed to add a spectator");
@@ -371,6 +370,7 @@ const resolvers: IResolvers = {
         () => pubsub.asyncIterator(GAME_UPDATED),
         (payload, variables) => {
           if (variables.gameId) {
+            
             return payload.gameUpdated.id === variables.gameId;
           }
           return true; // If no gameId provided, send all updates
