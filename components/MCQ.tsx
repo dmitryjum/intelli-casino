@@ -23,16 +23,25 @@ type Props = {
 }
 
 const MCQ = ({ gameId }: Props) => {
-  const { userRole } = useUserContext();
-  const { game, loading, error, closeGame, finishGame, updateGameQuestion } = useGames({ gameId, userRole });
+  const { userRole, userId } = useUserContext();
+  const { game, loading, error, closeGame, finishGame, updateGameQuestion, addSpectatorToGame } = useGames({ gameId, userRole });
   const [selectedChoice, setSelectedChoice] = React.useState<number>(0);
   const [correctAnswers, setCorrectAnswers] = React.useState<number>(0);
   const [wrongAnswers, setWrongAnswers] = React.useState<number>(0);
   const {toast} = useToast();
+  const isSpectator = game.spectators.some(spectator => spectator.id === userId);
+
+  React.useEffect(() => {
+    if (userRole === Role.SPECTATOR && game.status === GameStatus.CLOSED && !isSpectator) {
+      addSpectatorToGame({
+        variables: { gameId, userId }
+      });
+    }
+  }, [gameId, userId, userRole, game.status, isSpectator]);
 
   const currentQuestion = React.useMemo(() => {
-    return game.quiz.questions[game.currentQuestionIndex] || { question: "No question available"}
-  }, [game.currentQuestionIndex, game.quiz.questions]);
+    return game.questions[game.currentQuestionIndex] || { question: "No question available"}
+  }, [game.currentQuestionIndex, game.questions]);
 
   const {mutate: checkAnswer, isPending: isChecking} = useMutation({
     mutationFn: async() => {
@@ -87,7 +96,7 @@ const MCQ = ({ gameId }: Props) => {
         });
       }
     })
-  }, [checkAnswer, toast, isChecking, game.currentQuestionIndex, game.quiz.questions.length, finishGame, game.id]);
+  }, [checkAnswer, toast, isChecking, game.currentQuestionIndex, game.questions.length, finishGame, game.id]);
 
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -139,7 +148,7 @@ const MCQ = ({ gameId }: Props) => {
           {/* topic */}
           <p>
             <span className="mr-2 text-slate-400">Topic</span>
-            <span className="px-2 py-1 text-white rounded-lg bg-slate-800">{game.quiz.topic}</span>
+            <span className="px-2 py-1 text-white rounded-lg bg-slate-800">{game.topic}</span>
           </p>
           <StartTimer
             key={new Date(game.currentQuestionStartTime).getTime()} // Reset for each question
@@ -161,7 +170,7 @@ const MCQ = ({ gameId }: Props) => {
         <CardHeader className='flex flex-row -items-center'>
           <CardTitle className="mr-5 text-center divide-y divide-zinc-600/50">
             <div>{game.currentQuestionIndex + 1}</div>
-            <div className="text-base text-slate-400">{game.quiz.questions.length}</div>
+            <div className="text-base text-slate-400">{game.questions.length}</div>
           </CardTitle>
           <CardDescription className="flex-grow text-lg">
             {currentQuestion.question}

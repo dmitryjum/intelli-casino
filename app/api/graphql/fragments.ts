@@ -50,6 +50,9 @@ export const GAME_FRAGMENT = gql`
     userAnswers {
       ...UserAnswerFields
     }
+    spectators {
+      id
+    }
   }
   ${QUESTION_FRAGMENT}
   ${USER_ANSWER_FRAGMENT}

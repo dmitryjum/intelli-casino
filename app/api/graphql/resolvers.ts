@@ -33,6 +33,11 @@ const resolvers: IResolvers = {
       return prisma.game.findUnique({
         where: { id: gameId },
         include: {
+          spectators: {
+            select: {
+              id: true
+            }
+          },
           quiz: {
             select: {
               topic: true,
@@ -112,6 +117,11 @@ const resolvers: IResolvers = {
         where: { id: gameId },
         data: updatedData,
         include: {
+          spectators: {
+            select: {
+              id: true
+            }
+          },
           quiz: {
             select: {
               topic: true,
@@ -132,7 +142,7 @@ const resolvers: IResolvers = {
           }
         }
       });
-      const currentQuestion = updatedGame.questions[updatedGame.currentQuestionIndex];
+      const currentQuestion = updatedGame.quiz.questions[updatedGame.currentQuestionIndex];
       const blankedAnswer = generateBlankedAnswer(currentQuestion.answer);
       await prisma.question.update({
         where: {id: currentQuestion.id },
@@ -154,6 +164,11 @@ const resolvers: IResolvers = {
           currentQuestionStartTime: null
         },
         include: {
+          spectators: {
+            select: {
+              id: true
+            }
+          },
           quiz: {
             select: {
               topic: true,
@@ -191,6 +206,11 @@ const resolvers: IResolvers = {
           currentQuestionStartTime: new Date(currentQuestionStartTime),
         },
         include: {
+          spectators: {
+            select: {
+              id: true
+            }
+          },
           quiz: {
             select: {
               topic: true,
@@ -228,6 +248,64 @@ const resolvers: IResolvers = {
 
       return updatedGame;
     },
+    addSpectatorToGame: async(_: any, { gameId, userId }: { gameId: string, userId: string }) => {
+      try {
+        const game = await prisma.game.findUnique({
+          where: { id: gameId },
+          select: { spectators: true },
+        });
+
+        if (!game) throw new Error("Game not found");
+
+        const isAlreadySpectator = game.spectators.some(spectator => spectator.id === userId);
+
+        if (isAlreadySpectator) return game;
+
+        const updatedGame = await prisma.game.update({
+          where: { id: gameId },
+          data: {
+            spectators: {
+              connect: { id: userId },
+            }
+          },
+          include: {
+            spectators: {
+              select: {
+                id: true
+              }
+            },
+            quiz: {
+              select: {
+                topic: true,
+                gameType: true,
+                questions: {
+                  select: {
+                    id: true,
+                    question: true,
+                    options: true,
+                    answer: true,
+                    blankedAnswer: true,
+                  },
+                },
+              },
+            },
+            userAnswers: {
+              select: {
+                questionId: true,
+                answer: true,
+                userId: true,
+              },
+            },
+          }
+        });
+
+        pubsub.publish(GAME_UPDATED, { gameUpdated: updatedGame });
+        return updatedGame;
+      } catch (error) {
+        console.error("Error adding spectator to game: ", error);
+        throw new Error("Failed to add a spectator");
+      }
+    }
   },
   Subscription: {
     gameUpdated: {

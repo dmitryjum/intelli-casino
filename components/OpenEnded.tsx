@@ -23,13 +23,22 @@ type Props = {
 };
 
 const OpenEnded = ({ gameId }: Props) => {
-  const { userRole } = useUserContext();
-  const { game, loading, error, closeGame, finishGame, updateGameQuestion } = useGames({ gameId, userRole });
+  const { userRole, userId } = useUserContext();
+  const { game, loading, error, closeGame, finishGame, updateGameQuestion, addSpectatorToGame } = useGames({ gameId, userRole });
   const {toast} = useToast();
+  const isSpectator = game.spectators.some(spectator => spectator.id === userId);
+
+  React.useEffect(() => {
+    if (userRole === Role.SPECTATOR && game.status === GameStatus.CLOSED && !isSpectator) {
+      addSpectatorToGame({
+        variables: { gameId, userId }
+      });
+    }
+  }, [gameId, userId, userRole, game.status, isSpectator]);
   
   const currentQuestion = React.useMemo(() => {
-    return game.quiz.questions[game.currentQuestionIndex] || { question: "No question available"}
-  }, [game.currentQuestionIndex, game.quiz.questions]);
+    return game.questions[game.currentQuestionIndex] || { question: "No question available"}
+  }, [game.currentQuestionIndex, game.questions]);
 
   const {mutate: checkAnswer, isPending: isChecking} = useMutation({
     mutationFn: async() => {
@@ -57,7 +66,7 @@ const OpenEnded = ({ gameId }: Props) => {
           title: `Your answer is ${percentageSimilar}% similar to the correct answer`,
           description: "Answers are matched based on similarity comparisons",
         })  
-        if (game.currentQuestionIndex === game.quiz.questions.length -1) {
+        if (game.currentQuestionIndex === game.questions.length -1) {
           const currentTime = new Date()
           finishGame({variables: {gameId: game.id, timeEnded: currentTime}})
           .catch((error) => {
@@ -79,7 +88,7 @@ const OpenEnded = ({ gameId }: Props) => {
         });
       }
     })
-  }, [checkAnswer, toast, isChecking, game.currentQuestionIndex, game.quiz.questions.length, finishGame, game.id]);
+  }, [checkAnswer, toast, isChecking, game.currentQuestionIndex, game.questions.length, finishGame, game.id]);
 
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -136,7 +145,7 @@ const OpenEnded = ({ gameId }: Props) => {
         <CardHeader className='flex flex-row -items-center'>
           <CardTitle className="mr-5 text-center divide-y divide-zinc-600/50">
             <div>{game.currentQuestionIndex + 1}</div>
-            <div className="text-base text-slate-400">{game.quiz.questions.length}</div>
+            <div className="text-base text-slate-400">{game.questions.length}</div>
           </CardTitle>
           <CardDescription className="flex-grow text-lg">
             {currentQuestion.question}

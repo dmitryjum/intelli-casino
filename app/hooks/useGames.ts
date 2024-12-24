@@ -1,4 +1,4 @@
-import { CLOSE_GAME, FINISH_GAME, GAME_UPDATED, UPDATE_GAME_QUESTION, GET_GAME, OPEN_GAME } from '@/app/api/graphql/operations';
+import { CLOSE_GAME, FINISH_GAME, GAME_UPDATED, UPDATE_GAME_QUESTION, GET_GAME, OPEN_GAME, ADD_SPECTATOR_TO_GAME } from '@/app/api/graphql/operations';
 import { useMutation, useSubscription, useQuery } from '@apollo/client';
 import { useToast } from '@/components/ui/use-toast';
 import { GameData } from '../types/gameData';
@@ -65,7 +65,8 @@ const useGames = ({ gameId, userRole }: Props) => {
     currentQuestionStartTime: data?.game.currentQuestionStartTime || null,
     questions: data?.game.quiz.questions || [],
     userAnswers: data?.game.userAnswers || [],
-    quiz: data?.game.quiz || {questions: []}
+    quiz: data?.game.quiz || {questions: []},
+    spectators: data?.game.spectators || []
   };
 
   // const game = data?.game;
@@ -115,6 +116,17 @@ const useGames = ({ gameId, userRole }: Props) => {
     },
   });
 
+  const [addSpectatorToGame, { loading: addSpectatorLoading, error: addSpectatorError }] = useMutation(ADD_SPECTATOR_TO_GAME, {
+    update(cache, { data }) {
+      if (!data) return;
+      cache.writeQuery<GameData, GetGameQueryArgs>({
+        query: GET_GAME,
+        variables: { gameId },
+        data: { game: data.addSpectatorToGame },
+      });
+    },
+  }) 
+
   useSubscription<{ gameUpdated: GameData }>(GAME_UPDATED, {
     variables: { gameId },
     onData: ({ client, data }) => {
@@ -160,8 +172,8 @@ const useGames = ({ gameId, userRole }: Props) => {
     },
   });
 
-  const isMutating = closeGameLoading || finishLoading || updateLoading || queryLoading || openGameLoading
-  const mutationError = closeGameError || finishError || finishError || queryError || openGameError
+  const isMutating = closeGameLoading || finishLoading || updateLoading || queryLoading || openGameLoading || addSpectatorLoading
+  const mutationError = closeGameError || finishError || updateError || queryError || openGameError || addSpectatorError
 
   return {
     game,
@@ -170,7 +182,8 @@ const useGames = ({ gameId, userRole }: Props) => {
     openGame,
     closeGame,
     finishGame,
-    updateGameQuestion
+    updateGameQuestion,
+    addSpectatorToGame
   };
 }
 

@@ -25,5 +25,8 @@ export type GameData = {
       questionId: string;
       answer: string;
     }[];
+    spectators: {
+      id: string;
+    }[]
   }
 };

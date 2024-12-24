@@ -8,11 +8,13 @@ import { UserContextType } from './UserContext.d'
 export const UserContext = createContext<UserContextType>({
   userRole: Role.PLAYER,
   setUserRole: () => { },
+  userId: '',
 })
 
 export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const { data: session } = useSession()
   const [userRole, setUserRole] = useState(session?.user?.role || Role.PLAYER)
+  const userId = session?.user?.id || ''
 
   useEffect(() => {
     if (session?.user?.role) {
@@ -20,7 +22,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, [session])
   return (
-    <UserContext.Provider value={{ userRole, setUserRole }}>
+    <UserContext.Provider value={{ userRole, setUserRole, userId }}>
       {session?.user && <Navbar user={session?.user} /> }
       <main className={session?.user && "mt-16"}>{children}</main>
     </UserContext.Provider>

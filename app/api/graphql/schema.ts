@@ -14,6 +14,10 @@ const typeDefs = gql`
     open_ended
   }
 
+  type User {
+    id: ID!
+  }
+
   type Game {
     id: ID!
     status: GameStatus!
@@ -24,6 +28,7 @@ const typeDefs = gql`
     currentQuestionIndex: Int!
     currentQuestionStartTime: DateTime
     userAnswers: [UserAnswer]
+    spectators: [User]
   }
 
   type Quiz {
@@ -60,6 +65,7 @@ const typeDefs = gql`
     closeGame(gameId: String!, currentQuestionStartTime: DateTime, currentQuestionIndex: Int): Game!
     finishGame(gameId: String!, timeEnded: DateTime): Game!
     updateGameQuestion(gameId: String!, currentQuestionStartTime: DateTime!, currentQuestionIndex: Int!): Game!
+    addSpectatorToGame(gameId: String!, userId: String!): Game!
   }
 
   type Subscription {
