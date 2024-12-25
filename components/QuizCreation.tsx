@@ -26,7 +26,6 @@ import LoadingQuestions from './LoadingQuestions';
 import { useMutation as useApolloMutation } from '@apollo/client'
 import { OPEN_GAME } from '@/app/api/graphql/operations'
 import { useToast } from '@/components/ui/use-toast';
-import { AxiosError } from 'axios';
 
 type Props = {
   topicParam: string
@@ -43,7 +42,7 @@ const QuizCreation = ({ topicParam }: Props) => {
     onCompleted: (data) => {
       toast({
         title: 'Game Opened',
-        description: `The game "${data.openGame.topic}" has been opened for bets.`,
+        description: `The game "${data.openGame.quiz.topic}" has been opened for bets.`,
       })
     },
     onError: (error) => {
