@@ -52,7 +52,10 @@ model User {
   image    String?
   accounts Account[]
   sessions Session[]
-  games Game[]
+  quizes Quiz[]
+  userAnswers UserAnswer[]
+  spectating  Game[] @relation("SpectatorsOfGame")
+  playedGames Game[] @relation("PlayerOfGame")
 }
 
 enum Role {
@@ -71,22 +74,36 @@ enum GameStatus {
   FINISHED
 }
 
-model Game {
+model Quiz {
   id      String @id @default(cuid())
   userId  String
-  status GameStatus @default(OPEN)
-  openAt DateTime?
-  timeStarted DateTime
-  topic String
-  timeEnded DateTime?
+  topic String    @unique
   gameType GameType
-  currentQuestionIndex Int @default(0)
-  currentQuestionStartTime DateTime?
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   questions Question[]
+  games Game[]
 
+  @@index([userId], name: "quiz_userId_idx")
+  @@index([topic], name: "quiz_topic_idx")
+}
 
-  @@index([userId], name: "game_userId_idx")
+model Game {
+  id          String       @id @default(cuid())
+  quizId      String
+  quiz        Quiz         @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  playerId    String
+  player    User   @relation("PlayerOfGame", fields: [playerId], references: [id], onDelete: Cascade)
+  status                  GameStatus   @default(OPEN)
+  openAt                  DateTime?
+  timeStarted             DateTime
+  timeEnded               DateTime?
+  currentQuestionIndex    Int          @default(0)
+  currentQuestionStartTime DateTime?
+  spectators  User[]      @relation("SpectatorsOfGame")
+  userAnswers UserAnswer[]
+
+  @@index([quizId], name: "game_quizId_idx")
+  @@index([playerId], name: "game_playerId_idx")
 }
 
 model Question {
@@ -94,17 +111,33 @@ model Question {
   question String
   answer String
   blankedAnswer String @default("")
-  gameId String
+  quizId String
   options Json? // for mcq questions (multiple choice questions)
-  percentageCorrect Float? // for open ended questions (similarity between the user input)
-  isCorrect Boolean? // for mcq questions only
   questionType GameType
-  userAnswer String?
-  game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  userAnswers UserAnswer[]
+  quiz Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
+
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   
-  @@index([gameId], name: "question_gameId_idx")
+  @@index([quizId], name: "question_quizId_idx")
+}
+
+model UserAnswer {
+  id String @id @default(cuid())
+  questionId String
+  gameId String
+  game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  answer String
+  percentageCorrect Float? // for open ended questions (similarity between the user input)
+  isCorrect Boolean? // for mcq questions only
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([questionId], name: "userAnswer_questionId_idx")
+  @@index([gameId], name: "userAnswer_gameId_idx")
+  @@index([userId], name: "userAnswer_userId_idx")
 }
 
 model TopicCount {

@@ -23,9 +23,18 @@ type Props = {
 };
 
 const OpenEnded = ({ gameId }: Props) => {
-  const { userRole } = useUserContext();
-  const { game, loading, error, closeGame, finishGame, updateGameQuestion } = useGames({ gameId, userRole });
+  const { userRole, userId } = useUserContext();
+  const { game, loading, error, closeGame, finishGame, updateGameQuestion, addSpectatorToGame } = useGames({ gameId, userRole });
   const {toast} = useToast();
+  const isSpectator = game.spectators.some(spectator => spectator.id === userId);
+
+  React.useEffect(() => {
+    if (userRole === Role.SPECTATOR && game.status === GameStatus.CLOSED && !isSpectator) {
+      addSpectatorToGame({
+        variables: { gameId, userId }
+      });
+    }
+  }, [gameId, userId, userRole, game.status, isSpectator]);
   
   const currentQuestion = React.useMemo(() => {
     return game.questions[game.currentQuestionIndex] || { question: "No question available"}
@@ -41,6 +50,8 @@ const OpenEnded = ({ gameId }: Props) => {
       const payload: z.infer<typeof checkAnswerSchema> = {
         questionId: currentQuestion.id,
         userAnswer: filledAnswer,
+        gameId: game.id,
+        userId: game.playerId
       }
       const response = await axios.post('/api/checkAnswer', payload);
       return response.data
@@ -100,11 +111,11 @@ const OpenEnded = ({ gameId }: Props) => {
   if (error) return <div>Error: {error.message}</div>
 
   if (game.status === GameStatus.OPEN) {
-    return <GameOpenView gameId={gameId} game={game} closeGame={closeGame} />;
+    return <GameOpenView gameId={gameId} timeStarted={game.timeStarted} openAt={game.openAt} closeGame={closeGame} />;
   }
 
   if (game.timeEnded) {
-    return <GameEndedView game={game} />
+    return <GameEndedView timeStarted={game.timeStarted} gameId={game.id} />
   }
   console.log("Current question: ", currentQuestion)
   return (

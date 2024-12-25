@@ -12,7 +12,7 @@ const RecentActivities = async (props: Props) => {
   if (!session?.user) return redirect("/");
 
   const gamesCount = prisma.game.count({
-    where: { userId: session.user.id },
+    where: { playerId: session.user.id },
   });
   
   return (

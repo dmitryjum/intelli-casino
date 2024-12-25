@@ -63,3 +63,11 @@ export const UPDATE_GAME_QUESTION = gql`
   }
   ${GAME_FRAGMENT}
 `;
+
+export const ADD_SPECTATOR_TO_GAME = gql`
+  mutation AddSpectatorToGame($gameId: String!, $userId: String!) {
+    addSpectatorToGame(gameId: $gameId, userId: $userId) {
+      id
+    }
+  }
+`;

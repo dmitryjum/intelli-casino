@@ -14,13 +14,59 @@ export async function POST(req: Request, res: Response) {
         error: "You must be logged in"
       }, { status: 401 });
     }
+    const { id: userId } = session.user;
+
     const body = await req.json();
-    const {amount, topic, type} = quizCreationSchema.parse(body); // fits the request params into quiz creation schema and destructures it to create a new Game db record
-    const game = await prisma.game.create({
+    // fits the request params into quiz creation schema and destructures it to create a new Game db record
+    const {amount, topic, type} = quizCreationSchema.parse(body);
+    // Check if a Game (topic) already exists
+    let quiz = await prisma.quiz.findUnique({
+      where: { topic },
+      select: { id: true }, // no need to fetch everything, just ID
+    });
+    
+    if (quiz) {
+      // The topic exists -> check if the user has participated
+      const alreadyPlayedOrSpectated = await prisma.game.findFirst({
+        where: {
+          quizId: quiz.id,
+          OR: [
+            { playerId: userId },
+            { spectators: { some: { id: userId } } },
+          ],
+        },
+        select: { id: true },
+      });
+
+      if (alreadyPlayedOrSpectated) {
+        // The user has already played or watched -> block
+        return NextResponse.json(
+          { error: "You have already played or spectated this topic choose different topic" },
+          { status: 400 }
+        );
+      }
+
+      // If user hasn’t played or seen it -> create a new Game
+      //     (No need to create questions again or call OpenAI)
+      const newGame = await prisma.game.create({
+        data: {
+          quizId: quiz.id,
+          playerId: userId,
+          timeStarted: new Date()
+        },
+      });
+
+      return NextResponse.json({
+        message: "Game already exists; created new instance.",
+        quizId: quiz.id,
+        gameId: newGame.id,
+      });
+    }
+
+    quiz = await prisma.quiz.create({
       data: {
         gameType: type,
-        timeStarted: new Date().toISOString(),
-        userId: session.user.id,
+        userId,
         topic
       }
     });
@@ -40,7 +86,8 @@ export async function POST(req: Request, res: Response) {
       }
     });
 
-    const {data} = await axios.post(`${process.env.API_URL}/api/questions`, { // gets a set of questions from Open AI
+    // gets a set of questions from Open AI
+    const {data} = await axios.post(`${process.env.API_URL}/api/questions`, {
       amount,
       topic,
       type
@@ -61,7 +108,7 @@ export async function POST(req: Request, res: Response) {
           question: question.question,
           answer: question.answer,
           options: JSON.stringify(options),
-          gameId: game.id, // comes from recently created game db recrod above
+          quizId: quiz.id, // comes from recently created quiz db recod above
           questionType: 'mcq'
         }
       })
@@ -78,7 +125,7 @@ export async function POST(req: Request, res: Response) {
         return {
           question: question.question,
           answer: question.answer,
-          gameId: game.id,
+          quizId: quiz.id,
           questionType: 'open_ended'
         }
       })
@@ -86,15 +133,26 @@ export async function POST(req: Request, res: Response) {
         data: manyData
       })
     }
+
+    // Now that the Quiz + Questions exist, create the new Game
+    const newGame = await prisma.game.create({
+      data: {
+        quizId: quiz.id,
+        playerId: userId,
+        timeStarted: new Date(),
+      },
+    });
     
     return NextResponse.json({
-      gameId: game.id
+      message: "Created new game + instance",
+      quizId: quiz.id,
+      gameId: newGame.id,
     });
   } catch (error: any) {
     if (error instanceof ZodError) {
       return NextResponse.json({ error: error.issues }, { status: 400 });
     } else {
-      console.error("unknown error while creating game schema", error);
+      console.error("unknown error while creating game/instance", error);
       return NextResponse.json({ error: error }, { status: 500 })
     }
   }

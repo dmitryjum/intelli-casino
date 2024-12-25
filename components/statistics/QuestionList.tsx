@@ -1,13 +1,14 @@
-import { Question } from '@prisma/client'
+import { Question, UserAnswer } from '@prisma/client'
 import React from 'react'
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { cn } from '@/lib/utils';
 
 type Props = {
   questions: Question[];
+  userAnswers: UserAnswer[];
 }
 
-const QuestionList = ({questions}: Props) => {
+const QuestionList = ({questions, userAnswers}: Props) => {
   let gameType = questions[0].questionType;
   return (
     <Table className="mt-4">
@@ -25,6 +26,8 @@ const QuestionList = ({questions}: Props) => {
       <TableBody>
         <>
         {questions.map((question, index) => {
+          const userAnswer = userAnswers.find(answer => answer.questionId === question.id);
+
           return(
             <TableRow key={question.id}>
               <TableCell className='font-medium'>{index + 1}</TableCell>
@@ -38,18 +41,18 @@ const QuestionList = ({questions}: Props) => {
                 gameType === 'mcq' && (
                   <TableCell className={cn(
                     {
-                      'text-green-600': question.isCorrect,
-                      'text-red-600':!question.isCorrect,
+                      'text-green-600': userAnswer?.isCorrect,
+                      'text-red-600':!userAnswer?.isCorrect,
                     }
                   )}>
-                    {question.userAnswer}
+                    {userAnswer?.answer || 'No answer provided'}
                   </TableCell>
                 )
               }
               {gameType === 'open_ended' && (
                 <>
-                  <TableCell>{question.userAnswer}</TableCell>
-                  <TableCell className='text-right'>{question.percentageCorrect}</TableCell>
+                  <TableCell>{userAnswer?.answer || 'No answer provided'}</TableCell>
+                  <TableCell className='text-right'>{userAnswer?.percentageCorrect || 'N/A'}</TableCell>
                 </>
               )}
             </TableRow>

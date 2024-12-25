@@ -25,29 +25,58 @@ const resolvers: IResolvers = {
         orderBy: {
           openAt: 'desc',
         },
-      });
-      console.log("activeGames Resolver:", activeGames);
-      return activeGames;
-    },
-    game: async (_: any, { gameId }: { gameId: string }) => {
-      return prisma.game.findUnique({
-        where: { id: gameId },
         include: {
-          questions: {
+          quiz: {
             select: {
               id: true,
-              question: true,
-              options: true,
-              answer: true,
-              userAnswer: true,
-              blankedAnswer: true
+              topic: true,
+              gameType: true,
             },
-            orderBy: {
-              id: 'asc'
-            }
           }
         }
       });
+      
+      return activeGames;
+    },
+    game: async (_: any, { gameId }: { gameId: string }) => {
+      const game = await prisma.game.findUnique({
+        where: { id: gameId },
+        include: {
+          spectators: {
+            select: {
+              id: true
+            }
+          },
+          quiz: {
+            select: {
+              id: true,
+              topic: true,
+              gameType: true,
+              questions: {
+                select: {
+                  id: true,
+                  question: true,
+                  options: true,
+                  answer: true,
+                  blankedAnswer: true,
+                },
+                orderBy: {
+                  id: 'asc'
+                }
+              },
+            },
+          },
+          userAnswers: {
+            select: {
+              id: true,
+              questionId: true,
+              answer: true,
+              userId: true,
+            },
+          },
+        }
+      });
+      return game;
     },
   },
   Mutation: {
@@ -67,15 +96,38 @@ const resolvers: IResolvers = {
         where: { id: gameId },
         data: updatedData,
         include: {
-          questions: {
+          spectators: {
+            select: {
+              id: true
+            }
+          },
+          quiz: {
             select: {
               id: true,
-              question: true,
-              options: true,
+              topic: true,
+              gameType: true,
+              questions: {
+                select: {
+                  id: true,
+                  question: true,
+                  options: true,
+                  answer: true,
+                  blankedAnswer: true,
+                },
+                orderBy: {
+                  id: 'asc'
+                }
+              },
+            },
+          },
+          userAnswers: {
+            select: {
+              id: true,
+              questionId: true,
               answer: true,
-              blankedAnswer: true
-            }
-          }
+              userId: true,
+            },
+          },
         }
       });
 
@@ -98,22 +150,41 @@ const resolvers: IResolvers = {
         where: { id: gameId },
         data: updatedData,
         include: {
-          questions: {
+          spectators: {
+            select: {
+              id: true
+            }
+          },
+          quiz: {
             select: {
               id: true,
-              question: true,
-              options: true,
-              answer: true,
-              userAnswer: true,
-              blankedAnswer: true
+              topic: true,
+              gameType: true,
+              questions: {
+                select: {
+                  id: true,
+                  question: true,
+                  options: true,
+                  answer: true,
+                  blankedAnswer: true,
+                },
+                orderBy: {
+                  id: 'asc'
+                }
+              },
             },
-            orderBy: {
-              id: 'asc'
-            }
-          }
+          },
+          userAnswers: {
+            select: {
+              id: true,
+              questionId: true,
+              answer: true,
+              userId: true,
+            },
+          },
         }
       });
-      const currentQuestion = updatedGame.questions[updatedGame.currentQuestionIndex];
+      const currentQuestion = updatedGame.quiz.questions[updatedGame.currentQuestionIndex];
       const blankedAnswer = generateBlankedAnswer(currentQuestion.answer);
       await prisma.question.update({
         where: {id: currentQuestion.id },
@@ -135,16 +206,38 @@ const resolvers: IResolvers = {
           currentQuestionStartTime: null
         },
         include: {
-          questions: {
+          spectators: {
+            select: {
+              id: true
+            }
+          },
+          quiz: {
             select: {
               id: true,
-              question: true,
-              options: true,
+              topic: true,
+              gameType: true,
+              questions: {
+                select: {
+                  id: true,
+                  question: true,
+                  options: true,
+                  answer: true,
+                  blankedAnswer: true,
+                },
+                orderBy: {
+                  id: 'asc'
+                }
+              },
+            },
+          },
+          userAnswers: {
+            select: {
+              id: true,
+              questionId: true,
               answer: true,
-              userAnswer: true,
-              blankedAnswer: true
-            }
-          }
+              userId: true,
+            },
+          },
         }
       })
 
@@ -160,23 +253,42 @@ const resolvers: IResolvers = {
           currentQuestionStartTime: new Date(currentQuestionStartTime),
         },
         include: {
-          questions: {
+          spectators: {
+            select: {
+              id: true
+            }
+          },
+          quiz: {
             select: {
               id: true,
-              question: true,
-              options: true,
-              answer: true,
-              userAnswer: true,
-              blankedAnswer: true
+              topic: true,
+              gameType: true,
+              questions: {
+                select: {
+                  id: true,
+                  question: true,
+                  options: true,
+                  answer: true,
+                  blankedAnswer: true,
+                },
+                orderBy: {
+                  id: 'asc'
+                }
+              },
             },
-            orderBy: {
-              id: 'asc'
-            }
-          }
+          },
+          userAnswers: {
+            select: {
+              id: true,
+              questionId: true,
+              answer: true,
+              userId: true,
+            },
+          },
         }
       });
 
-      const currentQuestion = updatedGame.questions[currentQuestionIndex];
+      const currentQuestion = updatedGame.quiz.questions[currentQuestionIndex];
       const blankedAnswer = generateBlankedAnswer(currentQuestion.answer);
       await prisma.question.update({
         where: { id: currentQuestion.id },
@@ -188,6 +300,69 @@ const resolvers: IResolvers = {
 
       return updatedGame;
     },
+    addSpectatorToGame: async(_: any, { gameId, userId }: { gameId: string, userId: string }) => {
+      try {
+        const game = await prisma.game.findUnique({
+          where: { id: gameId },
+          select: { spectators: true },
+        });
+
+        if (!game) throw new Error("Game not found");
+
+        const isAlreadySpectator = game.spectators.some(spectator => spectator.id === userId);
+
+        if (isAlreadySpectator) return game;
+
+        const updatedGame = await prisma.game.update({
+          where: { id: gameId },
+          data: {
+            spectators: {
+              connect: { id: userId },
+            }
+          },
+          include: {
+            spectators: {
+              select: {
+                id: true
+              }
+            },
+            quiz: {
+              select: {
+                id: true,
+                topic: true,
+                gameType: true,
+                questions: {
+                  select: {
+                    id: true,
+                    question: true,
+                    options: true,
+                    answer: true,
+                    blankedAnswer: true,
+                  },
+                  orderBy: {
+                    id: 'asc'
+                  }
+                },
+              },
+            },
+            userAnswers: {
+              select: {
+                id: true,
+                questionId: true,
+                answer: true,
+                userId: true,
+              },
+            },
+          }
+        });
+
+        pubsub.publish(GAME_UPDATED, { gameUpdated: updatedGame });
+        return updatedGame
+      } catch (error) {
+        console.error("Error adding spectator to game: ", error);
+        throw new Error("Failed to add a spectator");
+      }
+    }
   },
   Subscription: {
     gameUpdated: {
@@ -195,6 +370,7 @@ const resolvers: IResolvers = {
         () => pubsub.asyncIterator(GAME_UPDATED),
         (payload, variables) => {
           if (variables.gameId) {
+            
             return payload.gameUpdated.id === variables.gameId;
           }
           return true; // If no gameId provided, send all updates

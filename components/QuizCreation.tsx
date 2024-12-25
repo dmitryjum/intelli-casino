@@ -42,7 +42,7 @@ const QuizCreation = ({ topicParam }: Props) => {
     onCompleted: (data) => {
       toast({
         title: 'Game Opened',
-        description: `The game "${data.openGame.topic}" has been opened for bets.`,
+        description: `The game "${data.openGame.quiz.topic}" has been opened for bets.`,
       })
     },
     onError: (error) => {
@@ -96,7 +96,12 @@ const QuizCreation = ({ topicParam }: Props) => {
           }
         }, 1000)
       },
-      onError: () => {
+      onError: (error) => {
+        toast({
+          title: 'Game has not been created',
+          description: (error as any).response?.data?.error,
+          variant: 'destructive'
+        });
         setShowLoader(false);
       }
     })

@@ -23,24 +23,32 @@ const StatisticsPage = async ({params: {gameId}}: Props) => {
   }
   const game = await prisma.game.findUnique({
     where: {id: gameId},
-    include: {questions: true}
+    include: {
+      quiz: {
+        select: {
+          gameType: true,
+          questions: true
+        }
+      },
+      userAnswers: true
+    }
   });
   
   if (!game) { return redirect("/quiz") };
 
   // logic to calculate user play results accuracy
   let accuracy: number = 0
-  if (game.gameType === 'mcq') {
-    let totalCorrect = game.questions.reduce((acc, question) => {
-      if (question.isCorrect) { return acc + 1 }
+  if (game.quiz.gameType === 'mcq') {
+    let totalCorrect = game.userAnswers.reduce((acc, answer) => {
+      if (answer.isCorrect) { return acc + 1 }
       return acc
     }, 0);
-    accuracy = (totalCorrect / game.questions.length) * 100;
-  } else if (game.gameType === 'open_ended') {
-    let totalPercentage = game.questions.reduce((acc, question) => {
-      return acc + (question.percentageCorrect || 0)
+    accuracy = (totalCorrect / game.userAnswers.length) * 100;
+  } else if (game.quiz.gameType === 'open_ended') {
+    let totalPercentage = game.userAnswers.reduce((acc, answer) => {
+      return acc + (answer.percentageCorrect || 0)
     }, 0);
-    accuracy = totalPercentage / game.questions.length
+    accuracy = totalPercentage / game.userAnswers.length
   }
 
   accuracy = Math.round(accuracy * 100) / 100;
@@ -63,7 +71,7 @@ const StatisticsPage = async ({params: {gameId}}: Props) => {
           <TimeTakenCard timeEnded={game.timeEnded} timeStarted={game.timeStarted} />
         </div>
 
-        <QuestionList questions={game.questions}/>
+        <QuestionList questions={game.quiz.questions} userAnswers={game.userAnswers}/>
       </div>
     </>
   )

@@ -11,7 +11,15 @@ type Props = {
 const HistoryComponent = async ({limit, userId}: Props) => {
   const games = await prisma.game.findMany({
     where: {
-      userId
+      playerId: userId
+    },
+    include: {
+      quiz: {
+        select: {
+          topic: true,
+          gameType: true
+        }
+      }
     },
     take: limit,
     orderBy: {
@@ -24,21 +32,21 @@ const HistoryComponent = async ({limit, userId}: Props) => {
         return (
           <div className="flex items-center justify-between" key={game.id}>
             <div className="flex items-center">
-              {game.gameType === 'mcq' ? (
+              {game.quiz.gameType === 'mcq' ? (
                 <CopyCheck className='mr-3' />
               ) : (
                 <Edit2 className='mr-3' />
               )}
               <div className="ml-4 space-y-1">
                 <Link href={`/statistics/${game.id}`} className='text-base font-medium leading-none underline'>
-                  {game.topic}
+                  {game.quiz.topic}
                 </Link>
                 <p className='flex items-center px-2 py-1 text-sm text-white rounded-lg w-fit bg-slate-800'>
                   <Clock className='w-4 h-4 mr-1' />
                   {new Date(game.timeStarted).toLocaleDateString()}
                 </p>
                 <p className="text-sm text-mute-foreground">
-                  {game.gameType === 'mcq' ? 'MCQ' : 'Open Ended'}
+                  {game.quiz.gameType === 'mcq' ? 'MCQ' : 'Open Ended'}
                 </p>
               </div>
             </div>

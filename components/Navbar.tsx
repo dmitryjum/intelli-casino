@@ -3,7 +3,6 @@ import React from "react";
 import SignInButton from "./SignInButton";
 import UserAccountNav from "./UserAccountNav";
 import { ThemeToggle } from "./ThemeToggle";
-import { Brain } from "lucide-react";
 import { User } from "@prisma/client";
 import Image from "next/image";
 
