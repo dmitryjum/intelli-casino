@@ -43,7 +43,7 @@ export async function POST(req: Request, res: Response) {
       if (alreadyPlayedOrSpectated) {
         // The user has already played or watched -> block
         return NextResponse.json(
-          { error: "You have already played or spectated this topic" },
+          { error: "You have already played or spectated this topic choose different topic" },
           { status: 400 }
         );
       }

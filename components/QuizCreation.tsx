@@ -26,6 +26,7 @@ import LoadingQuestions from './LoadingQuestions';
 import { useMutation as useApolloMutation } from '@apollo/client'
 import { OPEN_GAME } from '@/app/api/graphql/operations'
 import { useToast } from '@/components/ui/use-toast';
+import { AxiosError } from 'axios';
 
 type Props = {
   topicParam: string
@@ -96,7 +97,12 @@ const QuizCreation = ({ topicParam }: Props) => {
           }
         }, 1000)
       },
-      onError: () => {
+      onError: (error) => {
+        toast({
+          title: 'Game has not been created',
+          description: (error as any).response?.data?.error,
+          variant: 'destructive'
+        });
         setShowLoader(false);
       }
     })
