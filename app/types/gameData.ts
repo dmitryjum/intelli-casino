@@ -11,8 +11,12 @@ export type GameData = {
     timeStarted: Date;
     timeEnded?: Date;
     quiz: {
+      id: string;
       topic: string;
       gameType: GameType;
+      _count: {
+        questions: number;
+      }
       questions: {
         id: string;
         question: string;

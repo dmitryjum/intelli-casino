@@ -66,7 +66,7 @@ const OpenEnded = ({ gameId }: Props) => {
           title: `Your answer is ${percentageSimilar}% similar to the correct answer`,
           description: "Answers are matched based on similarity comparisons",
         })  
-        if (game.currentQuestionIndex === game.questions.length -1) {
+        if (game.currentQuestionIndex === game.totalQuestionsCount -1) {
           const currentTime = new Date()
           finishGame({variables: {gameId: game.id, timeEnded: currentTime}})
           .catch((error) => {
@@ -88,7 +88,7 @@ const OpenEnded = ({ gameId }: Props) => {
         });
       }
     })
-  }, [checkAnswer, toast, isChecking, game.currentQuestionIndex, game.questions.length, finishGame, game.id]);
+  }, [checkAnswer, toast, isChecking, game.currentQuestionIndex, game.totalQuestionsCount, finishGame, game.id]);
 
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -117,7 +117,7 @@ const OpenEnded = ({ gameId }: Props) => {
   if (game.timeEnded) {
     return <GameEndedView timeStarted={game.timeStarted} gameId={game.id} />
   }
-  console.log("Current question: ", currentQuestion)
+
   return (
     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 md:w-[80vw] max-w-4xl w-[90wv]">
       <div className="flex flex-row justify-between">
@@ -145,7 +145,7 @@ const OpenEnded = ({ gameId }: Props) => {
         <CardHeader className='flex flex-row -items-center'>
           <CardTitle className="mr-5 text-center divide-y divide-zinc-600/50">
             <div>{game.currentQuestionIndex + 1}</div>
-            <div className="text-base text-slate-400">{game.questions.length}</div>
+            <div className="text-base text-slate-400">{game.totalQuestionsCount}</div>
           </CardTitle>
           <CardDescription className="flex-grow text-lg">
             {currentQuestion.question}

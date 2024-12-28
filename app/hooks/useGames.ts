@@ -2,7 +2,7 @@ import { CLOSE_GAME, FINISH_GAME, GAME_UPDATED, UPDATE_GAME_QUESTION, GET_GAME, 
 import { useMutation, useSubscription, useQuery } from '@apollo/client';
 import { useToast } from '@/components/ui/use-toast';
 import { GameData } from '../types/gameData';
-import { GameStatus, Game, GameType, Question, Role} from '@prisma/client';
+import { GameStatus, GameType, Role} from '@prisma/client';
 
 interface GetGameQueryArgs {
   gameId: string
@@ -32,12 +32,11 @@ const useGames = ({ gameId, userRole }: Props) => {
     currentQuestionIndex: data?.game.currentQuestionIndex || 0,
     currentQuestionStartTime: data?.game.currentQuestionStartTime || null,
     questions: data?.game.quiz.questions || [],
+    totalQuestionsCount: data?.game.quiz._count.questions || 0,
     userAnswers: data?.game.userAnswers || [],
     quiz: data?.game.quiz || {questions: []},
     spectators: data?.game.spectators || []
   };
-
-  // const game = data?.game;
 
   const [openGame, {loading: openGameLoading, error: openGameError}] = useMutation(OPEN_GAME, {
     update(cache, { data }) {
