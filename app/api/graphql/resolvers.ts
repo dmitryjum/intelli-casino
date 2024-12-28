@@ -5,6 +5,7 @@ import GraphQLJSON from 'graphql-type-json';
 import { GraphQLDateTime } from 'graphql-scalars';
 import { OPEN_DURATION } from '@/lib/constants';
 import { generateBlankedAnswer } from '@/lib/utils';
+import { GraphQLError } from 'graphql';
 
 const pubsub = new PubSub();
 const prisma = new PrismaClient();
@@ -62,7 +63,7 @@ const resolvers: IResolvers = {
                 },
                 orderBy: {
                   id: 'asc'
-                }
+                },
               },
             },
           },
@@ -76,6 +77,17 @@ const resolvers: IResolvers = {
           },
         }
       });
+
+      if (game?.quiz && game?.quiz?.questions) {
+        game.quiz.questions = game.quiz.questions.slice(0, game.currentQuestionIndex + 1);
+      } else {
+        throw new GraphQLError('Invalid quiz or questions data in game', {
+          extensions: {
+            code: 'INVALID_GAME_DATA',
+            http: { status: 400 },
+          }
+        });
+      }
       return game;
     },
   },
@@ -116,7 +128,8 @@ const resolvers: IResolvers = {
                 },
                 orderBy: {
                   id: 'asc'
-                }
+                },
+                take: updatedData.currentQuestionIndex + 1
               },
             },
           },
@@ -170,7 +183,8 @@ const resolvers: IResolvers = {
                 },
                 orderBy: {
                   id: 'asc'
-                }
+                },
+                take: updatedData.currentQuestionIndex + 1
               },
             },
           },
@@ -226,7 +240,7 @@ const resolvers: IResolvers = {
                 },
                 orderBy: {
                   id: 'asc'
-                }
+                },
               },
             },
           },
@@ -239,7 +253,18 @@ const resolvers: IResolvers = {
             },
           },
         }
-      })
+      });
+
+      if (updatedGame?.quiz && updatedGame?.quiz?.questions) {
+        updatedGame.quiz.questions = updatedGame.quiz.questions.slice(0, updatedGame.currentQuestionIndex + 1);
+      } else {
+        throw new GraphQLError('Invalid quiz or questions data in game', {
+          extensions: {
+            code: 'INVALID_GAME_DATA',
+            http: { status: 400 },
+          }
+        });
+      }
 
       pubsub.publish(GAME_UPDATED, { gameUpdated: updatedGame });
 
@@ -273,7 +298,8 @@ const resolvers: IResolvers = {
                 },
                 orderBy: {
                   id: 'asc'
-                }
+                },
+                take: currentQuestionIndex + 1
               },
             },
           },
@@ -302,17 +328,6 @@ const resolvers: IResolvers = {
     },
     addSpectatorToGame: async(_: any, { gameId, userId }: { gameId: string, userId: string }) => {
       try {
-        const game = await prisma.game.findUnique({
-          where: { id: gameId },
-          select: { spectators: true },
-        });
-
-        if (!game) throw new Error("Game not found");
-
-        const isAlreadySpectator = game.spectators.some(spectator => spectator.id === userId);
-
-        if (isAlreadySpectator) return game;
-
         const updatedGame = await prisma.game.update({
           where: { id: gameId },
           data: {
@@ -355,6 +370,17 @@ const resolvers: IResolvers = {
             },
           }
         });
+
+        if (updatedGame?.quiz && updatedGame?.quiz?.questions) {
+          updatedGame.quiz.questions = updatedGame.quiz.questions.slice(0, updatedGame.currentQuestionIndex + 1);
+        } else {
+          throw new GraphQLError('Invalid quiz or questions data in game', {
+            extensions: {
+              code: 'INVALID_GAME_DATA',
+              http: { status: 400 },
+            }
+          });
+        }
 
         pubsub.publish(GAME_UPDATED, { gameUpdated: updatedGame });
         return updatedGame

@@ -21,6 +21,7 @@ const StatisticsPage = async ({params: {gameId}}: Props) => {
   if (!session?.user) {
     return redirect
   }
+  // TODO: SECURITY: MAKE SURE THIS ROUTE IS ONLY AVAILABLE FOR FINISHED GAME
   const game = await prisma.game.findUnique({
     where: {id: gameId},
     include: {
