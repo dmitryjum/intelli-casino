@@ -5,6 +5,7 @@ import TimeTakenCard from '@/components/statistics/TimeTakenCard';
 import { buttonVariants } from '@/components/ui/button';
 import { prisma } from '@/lib/db';
 import { getAuthSession } from '@/lib/nextauth';
+import { GameStatus } from '@prisma/client';
 import { LucideLayoutDashboard } from 'lucide-react';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
@@ -35,7 +36,7 @@ const StatisticsPage = async ({params: {gameId}}: Props) => {
     }
   });
   
-  if (!game) { return redirect("/quiz") };
+  if (!game || game.status !== GameStatus.FINISHED) { return redirect("/quiz") };
 
   // logic to calculate user play results accuracy
   let accuracy: number = 0

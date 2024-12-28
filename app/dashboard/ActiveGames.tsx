@@ -11,7 +11,7 @@ import { Role } from '@prisma/client'
 type Props = {}
 
 const ActiveGames = (props: Props) => {
-  const { userRole } = useUserContext();
+  const { userRole, userId } = useUserContext();
   // Fetch initial active games using useQuery
   const { data, loading, error } = useQuery<{ activeGames: GameData['game'][] }>(GET_ACTIVE_GAMES, {
     fetchPolicy: 'cache-and-network',
@@ -88,7 +88,7 @@ const ActiveGames = (props: Props) => {
       <CardContent className="max-h-[580px] overflow-auto">
         {userRole === Role.PLAYER && (
           <div className="text-yellow-500 mb-4">
-            You can&apos;t watch or play these games. If you want to observe them, toggle your Role to a Spectator.
+            You can&apos;t watch or play the games you haven't started. If you want to observe them, toggle your Role to a Spectator.
           </div>
         )}
         <table className="w-full table-auto">
@@ -102,7 +102,7 @@ const ActiveGames = (props: Props) => {
             {activeGames.map((gameData) => (
               <tr key={gameData.id} className="hover:bg-gray-100">
                 <td className="border px-4 py-2">
-                  {userRole === Role.PLAYER ? (
+                  {userRole === Role.PLAYER && gameData.playerId !== userId ? (
                     <span className="text-gray-400">{gameData.quiz.topic}</span> // Dimmed text for PLAYER
                   ) : (
                     <Link href={`/play/${gameData.quiz.gameType.replace(/_/g, '-')}/${gameData.id}`} className="text-blue-500 hover:underline">

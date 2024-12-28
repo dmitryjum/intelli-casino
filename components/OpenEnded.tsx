@@ -17,23 +17,30 @@ import { QUESTION_DURATION } from '@/lib/constants';
 import { useGames } from '@/app/hooks/useGames';
 import GameOpenView from './GameOpenView';
 import GameEndedView from './GameEndedView';
+import { useRouter } from 'next/navigation';
 
 type Props = {
   gameId: string
 };
 
 const OpenEnded = ({ gameId }: Props) => {
+  const router = useRouter();
   const { userRole, userId } = useUserContext();
   const { game, loading, error, closeGame, finishGame, updateGameQuestion, addSpectatorToGame } = useGames({ gameId, userRole });
   const {toast} = useToast();
   const isSpectator = game.spectators.some(spectator => spectator.id === userId);
 
   React.useEffect(() => {
+    // redirect a player who doesn't own this game
+    if (userRole === Role.PLAYER && game.playerId !== userId) {
+      router.push('/')
+    }
+
     if (userRole === Role.SPECTATOR && game.status === GameStatus.CLOSED && !isSpectator) {
       addSpectatorToGame({
         variables: { gameId, userId }
       });
-    }
+    };
   }, [gameId, userId, userRole, game.status, isSpectator]);
   
   const currentQuestion = React.useMemo(() => {

@@ -4,6 +4,7 @@ import { quizCreationSchema } from "@/schemas/form/quiz";
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 import axios from "axios";
+import { $Enums } from "@prisma/client";
 
 // /api/game
 export async function POST(req: Request, res: Response) {
@@ -13,6 +14,8 @@ export async function POST(req: Request, res: Response) {
       return NextResponse.json({
         error: "You must be logged in"
       }, { status: 401 });
+    } else if (session?.user.role !== $Enums.Role.PLAYER) {
+      return NextResponse.json({ error: 'Unauthorized action, you must be a player' }, { status: 403 });
     }
     const { id: userId } = session.user;
 
@@ -22,7 +25,10 @@ export async function POST(req: Request, res: Response) {
     // Check if a Game (topic) already exists
     let quiz = await prisma.quiz.findUnique({
       where: { topic },
-      select: { id: true }, // no need to fetch everything, just ID
+      select: {
+        id: true,
+        userId: true
+      }, // no need to fetch everything, just ID
     });
     
     if (quiz) {
@@ -90,7 +96,8 @@ export async function POST(req: Request, res: Response) {
     const {data} = await axios.post(`${process.env.API_URL}/api/questions`, {
       amount,
       topic,
-      type
+      type,
+      quizUserId: quiz.userId
     });
 
     if (type === "mcq") {

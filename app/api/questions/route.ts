@@ -3,6 +3,7 @@ import { quizCreationSchema } from "@/schemas/form/quiz";
 import { ZodError } from "zod";
 import { strict_output } from "@/lib/gpt";
 import { getAuthSession } from "@/lib/nextauth";
+import { $Enums } from "@prisma/client";
 
 // POST /api/questions
 export const POST = async(req: Request, res: Response) => {
@@ -13,6 +14,9 @@ export const POST = async(req: Request, res: Response) => {
     // }
     const body = await req.json();
     const { amount, topic, type } = quizCreationSchema.parse(body)
+    // if (session?.user.id !== quizUserId && session?.user.role !== $Enums.Role.PLAYER) {
+    //   return NextResponse.json({ error: 'Unauthorized action, you are not the quiz creator' }, { status: 403 });
+    // }
     let questions: any;
     if (type === 'open_ended') {
       questions = await strict_output(
