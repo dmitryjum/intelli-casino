@@ -39,6 +39,11 @@ const typeDefs = gql`
     gameType: GameType
     questions: [Question!]
     games: [Game]
+    _count: QuestionsCount
+  }
+
+  type QuestionsCount {
+    questions: Int!
   }
 
   type Question {

@@ -26,6 +26,9 @@ export const QUIZ_FRAGMENT = gql`
     id
     topic
     gameType
+    _count {
+      questions
+    }
     questions {
       ...QuestionFields
     }

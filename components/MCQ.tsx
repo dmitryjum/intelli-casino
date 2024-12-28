@@ -74,7 +74,7 @@ const MCQ = ({ gameId }: Props) => {
           })
           setWrongAnswers((prev) => prev + 1);
         }
-        if (game.currentQuestionIndex === game.questions.length -1) {
+        if (game.currentQuestionIndex === game.totalQuestionsCount -1) {
           const currentTime = new Date()
           finishGame({variables: {gameId: game.id, timeEnded: currentTime}})
           .catch((error) => {
@@ -96,7 +96,7 @@ const MCQ = ({ gameId }: Props) => {
         });
       }
     })
-  }, [checkAnswer, toast, isChecking, game.currentQuestionIndex, game.questions.length, finishGame, game.id]);
+  }, [checkAnswer, toast, isChecking, game.currentQuestionIndex, game.totalQuestionsCount, finishGame, game.id]);
 
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -140,7 +140,7 @@ const MCQ = ({ gameId }: Props) => {
   if (game.timeEnded) {
     return <GameEndedView timeStarted={game.timeStarted} gameId={game.id} />
   }
-  
+
   return (
     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 md:w-[80vw] max-w-4xl w-[90wv]">
       <div className="flex flex-row justify-between">

@@ -14,6 +14,9 @@ export type GameData = {
       id: string;
       topic: string;
       gameType: GameType;
+      _count: {
+        questions: number;
+      }
       questions: {
         id: string;
         question: string;

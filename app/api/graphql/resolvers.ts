@@ -53,6 +53,7 @@ const resolvers: IResolvers = {
               id: true,
               topic: true,
               gameType: true,
+              _count: { select: { questions: true } },
               questions: {
                 select: {
                   id: true,
@@ -103,6 +104,8 @@ const resolvers: IResolvers = {
       if (currentQuestionIndex !== undefined) {
         updatedData.currentQuestionIndex = currentQuestionIndex;
         updatedData.currentQuestionStartTime = new Date(new Date(updatedData.openAt).getTime() + OPEN_DURATION * 1000)
+      } else {
+        updatedData.currentQuestionIndex = 0;
       }
       const updatedGame = await prisma.game.update({
         where: { id: gameId },
@@ -118,6 +121,7 @@ const resolvers: IResolvers = {
               id: true,
               topic: true,
               gameType: true,
+              _count: { select: { questions: true } },
               questions: {
                 select: {
                   id: true,
@@ -158,6 +162,8 @@ const resolvers: IResolvers = {
       if (currentQuestionIndex !== undefined) {
         updatedData.currentQuestionIndex = currentQuestionIndex;
         updatedData.currentQuestionStartTime = new Date()
+      } else {
+        updatedData.currentQuestionIndex = 0;
       }
       const updatedGame = await prisma.game.update({
         where: { id: gameId },
@@ -173,6 +179,7 @@ const resolvers: IResolvers = {
               id: true,
               topic: true,
               gameType: true,
+              _count: { select: { questions: true } },
               questions: {
                 select: {
                   id: true,
@@ -230,6 +237,7 @@ const resolvers: IResolvers = {
               id: true,
               topic: true,
               gameType: true,
+              _count: { select: { questions: true } },
               questions: {
                 select: {
                   id: true,
@@ -255,17 +263,6 @@ const resolvers: IResolvers = {
         }
       });
 
-      if (updatedGame?.quiz && updatedGame?.quiz?.questions) {
-        updatedGame.quiz.questions = updatedGame.quiz.questions.slice(0, updatedGame.currentQuestionIndex + 1);
-      } else {
-        throw new GraphQLError('Invalid quiz or questions data in game', {
-          extensions: {
-            code: 'INVALID_GAME_DATA',
-            http: { status: 400 },
-          }
-        });
-      }
-
       pubsub.publish(GAME_UPDATED, { gameUpdated: updatedGame });
 
       return updatedGame;
@@ -288,6 +285,7 @@ const resolvers: IResolvers = {
               id: true,
               topic: true,
               gameType: true,
+              _count: { select: { questions: true } },
               questions: {
                 select: {
                   id: true,
@@ -346,6 +344,7 @@ const resolvers: IResolvers = {
                 id: true,
                 topic: true,
                 gameType: true,
+                _count: { select: { questions: true } },
                 questions: {
                   select: {
                     id: true,
