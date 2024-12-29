@@ -88,7 +88,7 @@ const ActiveGames = (props: Props) => {
       <CardContent className="max-h-[580px] overflow-auto">
         {userRole === Role.PLAYER && (
           <div className="text-yellow-500 mb-4">
-            You can&apos;t watch or play the games you haven't started. If you want to observe them, toggle your Role to a Spectator.
+            You can&apos;t watch or play the games you haven&apos;t started. If you want to observe them, toggle your Role to a Spectator.
           </div>
         )}
         <table className="w-full table-auto">
