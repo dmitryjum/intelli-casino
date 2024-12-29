@@ -9,6 +9,9 @@ declare module 'next-auth' {
     user: {
       id: string;
       role?: Role;
+      playedGames: {
+        id: string
+      }[];
     } & DefaultSession['user']
   }
 }
@@ -29,11 +32,19 @@ export const authOptions: NextAuthOptions = {
       const db_user = await prisma.user.findFirst({
         where: {
           email: token?.email
+        },
+        include: {
+          playedGames: {
+            select: {
+              id: true
+            }
+          }
         }
-      })
+      });
       if(db_user) {
         token.id = db_user.id
         token.role = db_user.role as Role
+        token.playedGames = db_user.playedGames
       }
       return token
     },
@@ -44,6 +55,7 @@ export const authOptions: NextAuthOptions = {
         session.user.email = token.email
         session.user.image = token.picture
         session.user.role = token.role
+        session.user.playedGames = token.playedGames as []
       }
       return session
     }
@@ -61,6 +73,7 @@ export const authOptions: NextAuthOptions = {
           name: profile.name || '',
           email: profile.email || '',
           image: profile.picture || '',
+          playedGames: profile.playedGames || [],
           role: Role.PLAYER,
         };
       },

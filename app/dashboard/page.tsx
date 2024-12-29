@@ -13,6 +13,6 @@ export default async function Dashboard() {
   if (!session?.user) {
     return redirect("/");
   }
-
+  
   return <DashboardClient initialRole={session?.user?.role || Role.PLAYER} />
 }

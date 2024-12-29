@@ -34,10 +34,6 @@ const MCQ = ({ gameId }: Props) => {
   const isSpectator = game.spectators.some(spectator => spectator.id === userId);
 
   React.useEffect(() => {
-    // redirect a player who doesn't own this game
-    if (userRole === Role.PLAYER && game.playerId !== userId) {
-      router.push('/')
-    }
 
     if (userRole === Role.SPECTATOR && game.status === GameStatus.CLOSED && !isSpectator) {
       addSpectatorToGame({

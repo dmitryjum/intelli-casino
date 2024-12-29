@@ -97,7 +97,6 @@ export async function POST(req: Request, res: Response) {
       amount,
       topic,
       type,
-      quizUserId: quiz.userId
     });
 
     if (type === "mcq") {
