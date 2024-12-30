@@ -1,5 +1,5 @@
 'use client'
-import { Role, GameStatus} from '@prisma/client'
+import { Role, GameStatus, GameType} from '@prisma/client'
 import { ChevronRight, Loader2, Timer } from 'lucide-react'
 import React from 'react'
 import { Card, CardDescription, CardHeader, CardTitle } from './ui/card'
@@ -37,6 +37,10 @@ const MCQ = ({ gameId }: Props) => {
     // if the user-Player tries to open a game that he's not a player of
     if (userRole === Role.PLAYER && game.playerId !== userId) {
       router.push('/');
+    }
+
+    if (game.gameType === GameType.mcq) {
+      router.push(`/play/open-ended/${gameId}`)
     }
 
     if (userRole === Role.SPECTATOR && game.status === GameStatus.CLOSED && !isSpectator) {

@@ -1,6 +1,6 @@
 'use client';
 import { formatTimeDelta } from '@/lib/utils';
-import { GameStatus, Role } from '@prisma/client'
+import { GameStatus, GameType, Role } from '@prisma/client'
 import { ChevronRight, Loader2, Timer } from 'lucide-react';
 import React from 'react'
 import { Card, CardDescription, CardHeader, CardTitle } from './ui/card';
@@ -34,6 +34,10 @@ const OpenEnded = ({ gameId }: Props) => {
     // if the user-Player tries to open a game that he's not a player of
     if (userRole === Role.PLAYER && game.playerId !== userId) {
       router.push('/');
+    }
+
+    if (game.gameType === GameType.mcq) {
+      router.push(`/play/mcq/${gameId}`)
     }
 
     if (userRole === Role.SPECTATOR && game.status === GameStatus.CLOSED && !isSpectator) {
