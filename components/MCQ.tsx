@@ -1,5 +1,5 @@
 'use client'
-import { Role, GameStatus} from '@prisma/client'
+import { Role, GameStatus, GameType} from '@prisma/client'
 import { ChevronRight, Loader2, Timer } from 'lucide-react'
 import React from 'react'
 import { Card, CardDescription, CardHeader, CardTitle } from './ui/card'
@@ -17,12 +17,14 @@ import StartTimer from './StartTimer';
 import { QUESTION_DURATION } from '@/lib/constants';
 import GameOpenView from './GameOpenView'
 import GameEndedView from './GameEndedView'
+import { useRouter } from 'next/navigation'
 
 type Props = {
   gameId: string
 }
 
 const MCQ = ({ gameId }: Props) => {
+  const router = useRouter();
   const { userRole, userId } = useUserContext();
   const { game, loading, error, closeGame, finishGame, updateGameQuestion, addSpectatorToGame } = useGames({ gameId, userRole });
   const [selectedChoice, setSelectedChoice] = React.useState<number>(0);
@@ -32,12 +34,21 @@ const MCQ = ({ gameId }: Props) => {
   const isSpectator = game.spectators.some(spectator => spectator.id === userId);
 
   React.useEffect(() => {
+    // if the user-Player tries to open a game that he's not a player of
+    if (userRole === Role.PLAYER && game.playerId !== userId) {
+      router.push('/');
+    }
+
+    if (game.gameType === GameType.mcq) {
+      router.push(`/play/open-ended/${gameId}`)
+    }
+
     if (userRole === Role.SPECTATOR && game.status === GameStatus.CLOSED && !isSpectator) {
       addSpectatorToGame({
         variables: { gameId, userId }
       });
     }
-  }, [gameId, userId, userRole, game.status, isSpectator]);
+  }, [gameId, userId, userRole, game.status, game.playerId, isSpectator]);
 
   const currentQuestion = React.useMemo(() => {
     return game.questions[game.currentQuestionIndex] || { question: "No question available"}

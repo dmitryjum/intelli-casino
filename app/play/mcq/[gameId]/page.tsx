@@ -11,7 +11,7 @@ type Props = {
 
 const MCQPage = async ({params: {gameId}}: Props) => {
   const session = await getAuthSession()
-  if(!session?.user) {
+  if (!session?.user) {
     return redirect('/');
   }
 

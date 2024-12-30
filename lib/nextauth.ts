@@ -30,7 +30,7 @@ export const authOptions: NextAuthOptions = {
         where: {
           email: token?.email
         }
-      })
+      });
       if(db_user) {
         token.id = db_user.id
         token.role = db_user.role as Role
@@ -55,7 +55,6 @@ export const authOptions: NextAuthOptions = {
       clientId: process.env.GOOGLE_CLIENT_ID as string,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
       profile(profile) {
-        console.log(profile)
         return {
           id: profile.sub,
           name: profile.name || '',
