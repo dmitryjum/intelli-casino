@@ -31,13 +31,17 @@ const OpenEnded = ({ gameId }: Props) => {
   const isSpectator = game.spectators.some(spectator => spectator.id === userId);
 
   React.useEffect(() => {
+    // if the user-Player tries to open a game that he's not a player of
+    if (userRole === Role.PLAYER && game.playerId !== userId) {
+      router.push('/');
+    }
 
     if (userRole === Role.SPECTATOR && game.status === GameStatus.CLOSED && !isSpectator) {
       addSpectatorToGame({
         variables: { gameId, userId }
       });
     };
-  }, [gameId, userId, userRole, game.status, isSpectator]);
+  }, [gameId, userId, userRole, game.status, game.playerId, isSpectator]);
   
   const currentQuestion = React.useMemo(() => {
     return game.questions[game.currentQuestionIndex] || { question: "No question available"}
