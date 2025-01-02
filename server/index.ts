@@ -9,6 +9,10 @@ import cors from 'cors';
 import typeDefs from '@/app/api/graphql/schema';
 import resolvers from '@/app/api/graphql/resolvers';
 import { makeExecutableSchema } from '@graphql-tools/schema';
+import { authOptions } from '@/lib/nextauth';
+import { getServerSession } from 'next-auth'
+import cookieParser from 'cookie-parser';
+import { GraphQLError } from 'graphql';
 
 (async () => {
   const schema = makeExecutableSchema({
@@ -43,16 +47,28 @@ import { makeExecutableSchema } from '@graphql-tools/schema';
   });
 
   await server.start();
-
   app.use(
     '/api/graphql',
     cors<cors.CorsRequest>({
       origin: 'http://localhost:3000',
       credentials: true,
     }),
+    cookieParser(),
     express.json(),
     expressMiddleware(server, {
-      context: async ({ req, res }) => ({ req, res }),
+      // context: async ({ req, res }) => ({ req, res }),
+      context: async ({ req, res }) => {
+        const session = await getServerSession(req, res, authOptions);
+        if (!session?.user) {
+          throw new GraphQLError('Unauthorized', {
+            extensions: {
+              code: 'UNAUTHENTICATED',
+              http: { status: 401 }, // Optional: Add HTTP status if needed
+            },
+          });
+        }
+        return { req, res, session };
+      }
     }),
   );
 
