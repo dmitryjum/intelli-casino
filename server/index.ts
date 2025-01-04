@@ -56,14 +56,13 @@ import { GraphQLError } from 'graphql';
     cookieParser(),
     express.json(),
     expressMiddleware(server, {
-      // context: async ({ req, res }) => ({ req, res }),
       context: async ({ req, res }) => {
         const session = await getServerSession(req, res, authOptions);
         if (!session?.user) {
           throw new GraphQLError('Unauthorized', {
             extensions: {
               code: 'UNAUTHENTICATED',
-              http: { status: 401 }, // Optional: Add HTTP status if needed
+              http: { status: 401 },
             },
           });
         }

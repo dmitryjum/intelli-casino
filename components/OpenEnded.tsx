@@ -20,23 +20,24 @@ import GameEndedView from './GameEndedView';
 import { useRouter } from 'next/navigation';
 
 type Props = {
-  gameId: string
+  gameId: string,
+  userId: string
 };
 
-const OpenEnded = ({ gameId }: Props) => {
+const OpenEnded = ({ gameId, userId }: Props) => {
   const router = useRouter();
-  const { userRole, userId } = useUserContext();
+  const { userRole } = useUserContext();
   const { game, loading, error, closeGame, finishGame, updateGameQuestion, addSpectatorToGame } = useGames({ gameId, userRole });
   const {toast} = useToast();
   const isSpectator = game.spectators.some(spectator => spectator.id === userId);
 
   React.useEffect(() => {
     // if the user-Player tries to open a game that he's not a player of
-    if (userRole === Role.PLAYER && game.playerId !== userId) {
+    if (userRole === Role.PLAYER && game.playerId !== userId && !loading && !error) {
       router.push('/');
     }
 
-    if (game.gameType === GameType.mcq) {
+    if (game.gameType === GameType.mcq && !loading && !error) {
       router.push(`/play/mcq/${gameId}`)
     }
 
@@ -104,7 +105,7 @@ const OpenEnded = ({ gameId }: Props) => {
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Enter') {
-        handleNext();
+        if (userRole === Role.PLAYER) handleNext();
       }
     };
 

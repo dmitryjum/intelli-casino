@@ -9,10 +9,8 @@ export const metadata = {
 
 export default async function Dashboard() {
   const session = await getAuthSession()
-  
   if (!session?.user) {
     return redirect("/");
   }
-  
   return <DashboardClient initialRole={session?.user?.role || Role.PLAYER} />
 }

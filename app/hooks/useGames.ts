@@ -32,12 +32,11 @@ const useGames = ({ gameId, userRole }: Props) => {
     currentQuestionIndex: data?.game.currentQuestionIndex || 0,
     currentQuestionStartTime: data?.game.currentQuestionStartTime || null,
     questions: data?.game.quiz.questions || [],
-    totalQuestionsCount: data?.game.quiz._count.questions || 0,
+    totalQuestionsCount: data?.game.quiz._count?.questions || 0,
     userAnswers: data?.game.userAnswers || [],
     quiz: data?.game.quiz || {questions: []},
     spectators: data?.game.spectators || []
   };
-
   const [openGame, {loading: openGameLoading, error: openGameError}] = useMutation(OPEN_GAME, {
     update(cache, { data }) {
       if(!data) return;

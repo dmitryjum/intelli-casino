@@ -20,7 +20,7 @@ export async function POST() {
       where: {
         playerId: session.user.id,
         status: {
-          not: 'FINISHED', // Adjust this condition based on your game status logic
+          not: 'FINISHED',
         },
       },
     });

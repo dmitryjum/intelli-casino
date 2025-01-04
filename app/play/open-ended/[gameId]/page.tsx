@@ -16,7 +16,7 @@ const OpenEndedPage = async ({params: {gameId}}: Props) => {
   }
 
 
-  return <OpenEnded gameId={gameId} />
+  return <OpenEnded gameId={gameId} userId={session.user.id} />
 }
 
 export default OpenEndedPage

@@ -15,7 +15,7 @@ const MCQPage = async ({params: {gameId}}: Props) => {
     return redirect('/');
   }
 
-  return <MCQ gameId={gameId} />
+  return <MCQ gameId={gameId} userId={session.user.id} />
 }
 
 export default MCQPage
