@@ -1,6 +1,10 @@
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
 import keyword_extractor from 'keyword-extractor';
+import { PrismaClient } from '@prisma/client';
+// import { Game } from "@prisma/client";
+
+const prisma = new PrismaClient();
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -54,4 +58,51 @@ export function generateBlankedAnswer(answer: string): string {
   return selectedKeywords.reduce((acc, keyword) => {
     return acc.replace(keyword, BLANKS);
   }, answer);
+}
+
+export const getGameUpdateData = async (gameId: string, updatedData: any) => {
+  if (updatedData.currentQuestionIndex === undefined) {
+    updatedData.currentQuestionIndex = 0;
+    delete updatedData.currentQuestionStartTime;
+  }
+  return await prisma.game.update({
+    where: { id: gameId },
+    data: updatedData,
+    include: {
+      spectators: {
+        select: {
+          id: true
+        }
+      },
+      quiz: {
+        select: {
+          id: true,
+          topic: true,
+          gameType: true,
+          _count: { select: { questions: true } },
+          questions: {
+            select: {
+              id: true,
+              question: true,
+              options: true,
+              answer: true,
+              blankedAnswer: true,
+            },
+            orderBy: {
+              id: 'asc'
+            },
+            take: updatedData.currentQuestionIndex + 1,
+          },
+        },
+      },
+      userAnswers: {
+        select: {
+          id: true,
+          questionId: true,
+          answer: true,
+          userId: true,
+        },
+      },
+    }
+  });
 }

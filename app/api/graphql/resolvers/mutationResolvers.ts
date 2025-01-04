@@ -3,6 +3,8 @@ import { PubSub } from 'graphql-subscriptions'
 import { OPEN_DURATION } from '@/lib/constants';
 import { generateBlankedAnswer } from '@/lib/utils';
 import { GraphQLError } from 'graphql';
+import { getGameUpdateData } from '@/lib/utils';
+
 const pubsub = new PubSub();
 const prisma = new PrismaClient();
 const GAME_UPDATED = 'GAME_UPDATED';
@@ -31,54 +33,11 @@ export const mutationResolvers = {
         let updatedData: any = {
           status: 'OPEN',
           openAt: new Date(),
+          currentQuestionIndex,
+          currentQuestionStartTime: new Date(new Date().getTime() + OPEN_DURATION * 1000)
         }
-  
-        if (currentQuestionIndex !== undefined) {
-          updatedData.currentQuestionIndex = currentQuestionIndex;
-          updatedData.currentQuestionStartTime = new Date(new Date(updatedData.openAt).getTime() + OPEN_DURATION * 1000)
-        } else {
-          updatedData.currentQuestionIndex = 0;
-        }
-        return await prisma.game.update({
-          where: { id: gameId },
-          data: updatedData,
-          include: {
-            spectators: {
-              select: {
-                id: true
-              }
-            },
-            quiz: {
-              select: {
-                id: true,
-                topic: true,
-                gameType: true,
-                _count: { select: { questions: true } },
-                questions: {
-                  select: {
-                    id: true,
-                    question: true,
-                    options: true,
-                    answer: true,
-                    blankedAnswer: true,
-                  },
-                  orderBy: {
-                    id: 'asc'
-                  },
-                  take: updatedData.currentQuestionIndex + 1
-                },
-              },
-            },
-            userAnswers: {
-              select: {
-                id: true,
-                questionId: true,
-                answer: true,
-                userId: true,
-              },
-            },
-          }
-        });
+
+        return await getGameUpdateData(gameId, updatedData);
       });
 
       pubsub.publish(GAME_UPDATED, { gameUpdated: updatedGame });
@@ -114,54 +73,12 @@ export const mutationResolvers = {
           let updatedData: any = {
             status: 'CLOSED',
             openAt: null,
+            currentQuestionIndex,
+            currentQuestionStartTime: new Date()
           }
 
-          if (currentQuestionIndex !== undefined) {
-            updatedData.currentQuestionIndex = currentQuestionIndex;
-            updatedData.currentQuestionStartTime = new Date()
-          } else {
-            updatedData.currentQuestionIndex = 0;
-          }
-          const updatedTransactionGame = await prisma.game.update({
-            where: { id: gameId },
-            data: updatedData,
-            include: {
-              spectators: {
-                select: {
-                  id: true
-                }
-              },
-              quiz: {
-                select: {
-                  id: true,
-                  topic: true,
-                  gameType: true,
-                  _count: { select: { questions: true } },
-                  questions: {
-                    select: {
-                      id: true,
-                      question: true,
-                      options: true,
-                      answer: true,
-                      blankedAnswer: true,
-                    },
-                    orderBy: {
-                      id: 'asc'
-                    },
-                    take: updatedData.currentQuestionIndex + 1
-                  },
-                },
-              },
-              userAnswers: {
-                select: {
-                  id: true,
-                  questionId: true,
-                  answer: true,
-                  userId: true,
-                },
-              },
-            }
-          });
+          const updatedTransactionGame = await getGameUpdateData(gameId, updatedData);
+
           if (updatedTransactionGame.quiz.gameType === GameType.open_ended) {
             const currentQuestion = updatedTransactionGame.quiz.questions[updatedTransactionGame.currentQuestionIndex];
             const blankedAnswer = generateBlankedAnswer(currentQuestion.answer);
@@ -293,49 +210,13 @@ export const mutationResolvers = {
             });
           }
 
-          let updatedTransactionGame = await prisma.game.update({
-            where: { id: gameId },
-            data: {
-              currentQuestionIndex: currentQuestionIndex,
-              currentQuestionStartTime: new Date(currentQuestionStartTime),
-            },
-            include: {
-              spectators: {
-                select: {
-                  id: true
-                }
-              },
-              quiz: {
-                select: {
-                  id: true,
-                  topic: true,
-                  gameType: true,
-                  _count: { select: { questions: true } },
-                  questions: {
-                    select: {
-                      id: true,
-                      question: true,
-                      options: true,
-                      answer: true,
-                      blankedAnswer: true,
-                    },
-                    orderBy: {
-                      id: 'asc'
-                    },
-                    take: currentQuestionIndex + 1
-                  },
-                },
-              },
-              userAnswers: {
-                select: {
-                  id: true,
-                  questionId: true,
-                  answer: true,
-                  userId: true,
-                },
-              },
-            }
-          });
+          const updatedData = {
+            currentQuestionIndex,
+            currentQuestionStartTime: new Date(currentQuestionStartTime)
+          }
+
+          const updatedTransactionGame = await getGameUpdateData(gameId, updatedData);
+
           if (updatedTransactionGame.quiz.gameType === GameType.open_ended) {
             const currentQuestion = updatedTransactionGame.quiz.questions[currentQuestionIndex];
             const blankedAnswer = generateBlankedAnswer(currentQuestion.answer);
