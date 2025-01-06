@@ -37,9 +37,9 @@ export const mutationResolvers = {
           currentQuestionStartTime: new Date(new Date().getTime() + OPEN_DURATION * 1000)
         }
 
-        return await getGameUpdateData(gameId, updatedData);
+        return getGameUpdateData(gameId, updatedData);
       });
-
+      console.log("openGame mutation resolver: ", updatedGame);
       pubsub.publish(GAME_UPDATED, { gameUpdated: updatedGame });
 
       return updatedGame;
@@ -127,50 +127,15 @@ export const mutationResolvers = {
               }
             });
           }
-          return await prisma.game.update({
-            where: {id: gameId},
-            data: {
-              status: 'FINISHED',
-              openAt: null,
-              timeEnded: timeEnded,
-              currentQuestionStartTime: null
-            },
-            include: {
-              spectators: {
-                select: {
-                  id: true
-                }
-              },
-              quiz: {
-                select: {
-                  id: true,
-                  topic: true,
-                  gameType: true,
-                  _count: { select: { questions: true } },
-                  questions: {
-                    select: {
-                      id: true,
-                      question: true,
-                      options: true,
-                      answer: true,
-                      blankedAnswer: true,
-                    },
-                    orderBy: {
-                      id: 'asc'
-                    },
-                  },
-                },
-              },
-              userAnswers: {
-                select: {
-                  id: true,
-                  questionId: true,
-                  answer: true,
-                  userId: true,
-                },
-              },
-            }
-          });
+
+          const updatedData: any = {
+            status: 'FINISHED',
+            openAt: null,
+            timeEnded: timeEnded,
+            currentQuestionStartTime: null
+          }
+
+          return await getGameUpdateData(gameId, updatedData);
         } else {
           throw new GraphQLError('Game not found', {
             extensions: {
@@ -265,49 +230,12 @@ export const mutationResolvers = {
             });
           }
 
-          const updatedTransactionGame = await prisma.game.update({
-            where: { id: gameId },
-            data: {
-              spectators: {
-                connect: { id: userId },
-              }
-            },
-            include: {
-              spectators: {
-                select: {
-                  id: true
-                }
-              },
-              quiz: {
-                select: {
-                  id: true,
-                  topic: true,
-                  gameType: true,
-                  _count: { select: { questions: true } },
-                  questions: {
-                    select: {
-                      id: true,
-                      question: true,
-                      options: true,
-                      answer: true,
-                      blankedAnswer: true,
-                    },
-                    orderBy: {
-                      id: 'asc'
-                    }
-                  },
-                },
-              },
-              userAnswers: {
-                select: {
-                  id: true,
-                  questionId: true,
-                  answer: true,
-                  userId: true,
-                },
-              },
+          const updatedData = {
+            spectators: {
+              connect: { id: userId }
             }
-          });
+          }
+          const updatedTransactionGame = await getGameUpdateData(gameId, updatedData);
 
           if (updatedTransactionGame?.quiz && updatedTransactionGame?.quiz?.questions) {
             updatedTransactionGame.quiz.questions = updatedTransactionGame.quiz.questions.slice(0, updatedTransactionGame.currentQuestionIndex + 1);
@@ -319,6 +247,7 @@ export const mutationResolvers = {
               }
             });
           }
+          console.log("updated Transaction Game: ", updatedTransactionGame)
           return updatedTransactionGame;
         } else {
           throw new GraphQLError('Game not found', {
@@ -329,7 +258,7 @@ export const mutationResolvers = {
           });
         }
       });
-        
+      console.log("addSpectatorToGame mutation: ", updatedGame);
       pubsub.publish(GAME_UPDATED, { gameUpdated: updatedGame });
       return updatedGame
     }
