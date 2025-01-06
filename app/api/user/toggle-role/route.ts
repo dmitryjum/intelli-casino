@@ -29,8 +29,6 @@ export async function POST() {
       return NextResponse.json({ error: "You must finish all active games before switching roles." }, { status: 403 });
     }
 
-
-
     const newRole = user.role === Role.PLAYER ? Role.SPECTATOR : Role.PLAYER
 
     const updatedUser = await prisma.user.update({

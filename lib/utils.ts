@@ -1,9 +1,7 @@
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
 import keyword_extractor from 'keyword-extractor';
-import { PrismaClient, Prisma } from '@prisma/client';
-import { GameData } from "@/app/types/gameData";
-// import { Game } from "@prisma/client";
+import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 

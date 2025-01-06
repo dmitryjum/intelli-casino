@@ -15,7 +15,6 @@ const OpenEndedPage = async ({params: {gameId}}: Props) => {
     return redirect('/');
   }
 
-
   return <OpenEnded gameId={gameId} userId={session.user.id} />
 }
 
