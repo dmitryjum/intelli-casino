@@ -14,15 +14,19 @@ export async function POST() {
       )
     }
 
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-    })
+    const user = session?.user;
 
-    if (!user) {
-      return NextResponse.json(
-        { error: "User not found." },
-        { status: 404 }
-      )
+    const unfinishedGames = await prisma.game.findMany({
+      where: {
+        playerId: session.user.id,
+        status: {
+          not: 'FINISHED',
+        },
+      },
+    });
+
+    if (unfinishedGames.length > 0) {
+      return NextResponse.json({ error: "You must finish all active games before switching roles." }, { status: 403 });
     }
 
     const newRole = user.role === Role.PLAYER ? Role.SPECTATOR : Role.PLAYER

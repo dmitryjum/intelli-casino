@@ -1,6 +1,6 @@
 'use client';
 import { formatTimeDelta } from '@/lib/utils';
-import { GameStatus, Role } from '@prisma/client'
+import { GameStatus, GameType, Role } from '@prisma/client'
 import { ChevronRight, Loader2, Timer } from 'lucide-react';
 import React from 'react'
 import { Card, CardDescription, CardHeader, CardTitle } from './ui/card';
@@ -17,24 +17,36 @@ import { QUESTION_DURATION } from '@/lib/constants';
 import { useGames } from '@/app/hooks/useGames';
 import GameOpenView from './GameOpenView';
 import GameEndedView from './GameEndedView';
+import { useRouter } from 'next/navigation';
 
 type Props = {
-  gameId: string
+  gameId: string,
+  userId: string
 };
 
-const OpenEnded = ({ gameId }: Props) => {
-  const { userRole, userId } = useUserContext();
+const OpenEnded = ({ gameId, userId }: Props) => {
+  const router = useRouter();
+  const { userRole } = useUserContext();
   const { game, loading, error, closeGame, finishGame, updateGameQuestion, addSpectatorToGame } = useGames({ gameId, userRole });
   const {toast} = useToast();
   const isSpectator = game.spectators.some(spectator => spectator.id === userId);
 
   React.useEffect(() => {
-    if (userRole === Role.SPECTATOR && game.status === GameStatus.CLOSED && !isSpectator) {
+    // if the user-Player tries to open a game that he's not a player of
+    if (userRole === Role.PLAYER && game.playerId !== userId && !loading && !error) {
+      router.push('/');
+    }
+
+    if (game.gameType === GameType.mcq && !loading && !error) {
+      router.push(`/play/mcq/${gameId}`)
+    }
+
+    if (userRole === Role.SPECTATOR && game.status !== GameStatus.FINISHED && !isSpectator) {
       addSpectatorToGame({
         variables: { gameId, userId }
       });
-    }
-  }, [gameId, userId, userRole, game.status, isSpectator]);
+    };
+  }, [gameId, userId, userRole, game.status, game.playerId, isSpectator]);
   
   const currentQuestion = React.useMemo(() => {
     return game.questions[game.currentQuestionIndex] || { question: "No question available"}
@@ -93,7 +105,7 @@ const OpenEnded = ({ gameId }: Props) => {
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Enter') {
-        handleNext();
+        if (userRole === Role.PLAYER) handleNext();
       }
     };
 

@@ -11,10 +11,11 @@ type Props = {
 
 const OpenEndedPage = async ({params: {gameId}}: Props) => {
   const session = await getAuthSession()
-  if(!session?.user) {
+  if (!session?.user) {
     return redirect('/');
   }
-  return <OpenEnded gameId={gameId} />
+
+  return <OpenEnded gameId={gameId} userId={session.user.id} />
 }
 
 export default OpenEndedPage

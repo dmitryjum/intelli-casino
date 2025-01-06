@@ -5,7 +5,7 @@ import { createClient } from 'graphql-ws'
 
 const httpLink = new HttpLink({
   uri: process.env.NEXT_PUBLIC_GRAPHQL_HTTP_URI,
-  credentials: 'same-origin',
+  credentials: 'include',
 })
 
 // WebSocket link for subscriptions

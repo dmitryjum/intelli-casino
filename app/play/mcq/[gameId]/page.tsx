@@ -11,11 +11,11 @@ type Props = {
 
 const MCQPage = async ({params: {gameId}}: Props) => {
   const session = await getAuthSession()
-  if(!session?.user) {
+  if (!session?.user) {
     return redirect('/');
   }
 
-  return <MCQ gameId={gameId} />
+  return <MCQ gameId={gameId} userId={session.user.id} />
 }
 
 export default MCQPage

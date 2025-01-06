@@ -1,5 +1,5 @@
 'use client'
-import { Role, GameStatus} from '@prisma/client'
+import { Role, GameStatus, GameType} from '@prisma/client'
 import { ChevronRight, Loader2, Timer } from 'lucide-react'
 import React from 'react'
 import { Card, CardDescription, CardHeader, CardTitle } from './ui/card'
@@ -17,13 +17,16 @@ import StartTimer from './StartTimer';
 import { QUESTION_DURATION } from '@/lib/constants';
 import GameOpenView from './GameOpenView'
 import GameEndedView from './GameEndedView'
+import { useRouter } from 'next/navigation'
 
 type Props = {
-  gameId: string
+  gameId: string,
+  userId: string
 }
 
-const MCQ = ({ gameId }: Props) => {
-  const { userRole, userId } = useUserContext();
+const MCQ = ({ gameId, userId }: Props) => {
+  const router = useRouter();
+  const { userRole } = useUserContext();
   const { game, loading, error, closeGame, finishGame, updateGameQuestion, addSpectatorToGame } = useGames({ gameId, userRole });
   const [selectedChoice, setSelectedChoice] = React.useState<number>(0);
   const [correctAnswers, setCorrectAnswers] = React.useState<number>(0);
@@ -32,12 +35,21 @@ const MCQ = ({ gameId }: Props) => {
   const isSpectator = game.spectators.some(spectator => spectator.id === userId);
 
   React.useEffect(() => {
-    if (userRole === Role.SPECTATOR && game.status === GameStatus.CLOSED && !isSpectator) {
+    // if the user-Player tries to open a game that he's not a player of
+    if (userRole === Role.PLAYER && game.playerId !== userId && !loading && !error) {
+      router.push('/');
+    }
+
+    if (game.gameType === GameType.open_ended && !loading && !error) {
+      router.push(`/play/open-ended/${gameId}`)
+    }
+
+    if (userRole === Role.SPECTATOR && game.status !== GameStatus.FINISHED && !isSpectator) {
       addSpectatorToGame({
         variables: { gameId, userId }
       });
     }
-  }, [gameId, userId, userRole, game.status, isSpectator]);
+  }, [gameId, userId, userRole, game.status, game.playerId, isSpectator]);
 
   const currentQuestion = React.useMemo(() => {
     return game.questions[game.currentQuestionIndex] || { question: "No question available"}
@@ -100,16 +112,18 @@ const MCQ = ({ gameId }: Props) => {
 
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === '1') {
-        setSelectedChoice(0);
-      } else if (event.key === '2') {
-        setSelectedChoice(1);
-      } else if (event.key === '3') {
-        setSelectedChoice(2);
-      } else if (event.key === '4') {
-        setSelectedChoice(3);
-      } else if (event.key === 'Enter') {
-        handleNext();
+      if (userRole === Role.PLAYER) {
+        if (event.key === '1') {
+          setSelectedChoice(0);
+        } else if (event.key === '2') {
+          setSelectedChoice(1);
+        } else if (event.key === '3') {
+          setSelectedChoice(2);
+        } else if (event.key === '4') {
+          setSelectedChoice(3);
+        } else if (event.key === 'Enter') {
+          handleNext();
+        }
       }
     }
 
@@ -170,7 +184,7 @@ const MCQ = ({ gameId }: Props) => {
         <CardHeader className='flex flex-row -items-center'>
           <CardTitle className="mr-5 text-center divide-y divide-zinc-600/50">
             <div>{game.currentQuestionIndex + 1}</div>
-            <div className="text-base text-slate-400">{game.questions.length}</div>
+            <div className="text-base text-slate-400">{game.totalQuestionsCount}</div>
           </CardTitle>
           <CardDescription className="flex-grow text-lg">
             {currentQuestion.question}
