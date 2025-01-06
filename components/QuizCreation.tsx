@@ -26,6 +26,7 @@ import LoadingQuestions from './LoadingQuestions';
 import { useMutation as useApolloMutation } from '@apollo/client'
 import { OPEN_GAME } from '@/app/api/graphql/operations'
 import { useToast } from '@/components/ui/use-toast';
+import { GameType } from '@prisma/client';
 
 type Props = {
   topicParam: string
@@ -71,7 +72,7 @@ const QuizCreation = ({ topicParam }: Props) => {
     defaultValues: {
       amount: 3,
       topic: topicParam,
-      type: "open_ended"
+      type: GameType.open_ended
     },
   });
 
@@ -82,18 +83,15 @@ const QuizCreation = ({ topicParam }: Props) => {
       topic: input.topic,
       type: input.type,
     }, {
-      onSuccess: ({gameId, topic}) => {
+      onSuccess: ({gameId}) => {
         setFinished(true);
         openGame({variables: { gameId } })
         .catch((error) => {
           console.error('Error during game opening: ', error);
         });
+        const quizTypeRoute: string = form.getValues('type') === GameType.open_ended ? 'open-ended' : 'mcq'
         setTimeout(() => {
-          if (form.getValues('type') === 'open_ended') {
-            router.push(`/play/open-ended/${gameId}`)
-          } else {
-            router.push(`/play/mcq/${gameId}`)
-          }
+          router.push(`/play/${quizTypeRoute}/${gameId}`)
         }, 1000)
       },
       onError: (error) => {
@@ -165,7 +163,7 @@ const QuizCreation = ({ topicParam }: Props) => {
                  variant={form.getValues("type") === "mcq" ? "default" : "secondary"}
                  className='w-1/2 rounded-none rounded-l-lg'
                  onClick={() => {
-                  form.setValue('type', 'mcq')
+                  form.setValue('type', GameType.mcq)
                  }}
                 >
                   <CopyCheck className="w-4 h-4 mr-2" /> Multiple Choice
@@ -176,7 +174,7 @@ const QuizCreation = ({ topicParam }: Props) => {
                  variant={form.getValues("type") === "open_ended" ? "default" : "secondary"}
                  className='w-1/2 rounded-none rounded-r-lg'
                  onClick={() => {
-                  form.setValue('type', 'open_ended')
+                  form.setValue('type', GameType.open_ended)
                  }}
                 >
                    <BookOpen className='w-4 h-4 mr-2' /> Open Ended

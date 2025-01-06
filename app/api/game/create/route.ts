@@ -4,7 +4,9 @@ import { quizCreationSchema } from "@/schemas/form/quiz";
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 import axios from "axios";
-import { $Enums } from "@prisma/client";
+import { Role, GameType, Prisma } from "@prisma/client";
+import { generateQuestions } from "@/lib/questionGenerator";
+import { MCQQuestion, OpenEndedQuestion } from "@/app/types/questionTypes";
 
 // /api/game
 export async function POST(req: Request, res: Response) {
@@ -14,7 +16,7 @@ export async function POST(req: Request, res: Response) {
       return NextResponse.json({
         error: "You must be logged in"
       }, { status: 401 });
-    } else if (session?.user.role !== $Enums.Role.PLAYER) {
+    } else if (session?.user.role !== Role.PLAYER) {
       return NextResponse.json({ error: 'Unauthorized action, you must be a player' }, { status: 403 });
     }
     const { id: userId } = session.user;
@@ -68,7 +70,7 @@ export async function POST(req: Request, res: Response) {
         gameId: newGame.id,
       });
     }
-
+// Logic below: If quiz doesn't exist -> create new quiz, game, set of questions
     quiz = await prisma.quiz.create({
       data: {
         gameType: type,
@@ -92,22 +94,11 @@ export async function POST(req: Request, res: Response) {
       }
     });
 
-    // gets a set of questions from Open AI
-    const {data} = await axios.post(`${process.env.API_URL}/api/questions`, {
-      amount,
-      topic,
-      type,
-    });
-
-    if (type === "mcq") {
-      type mcqQuestion = {
-        question: string,
-        answer: string,
-        option1: string,
-        option2: string,
-        option3: string,
-      }
-      let manyData = data.questions.map((question: mcqQuestion) => {
+    const questions = await generateQuestions({amount, topic, type});
+    
+    let manyData: Prisma.QuestionCreateManyInput | Prisma.QuestionCreateManyInput[] = [];
+    if (type === GameType.mcq) { 
+      manyData = questions.map((question: MCQQuestion) => {
         let options = [question.answer, question.option1, question.option2, question.option3];
         options = options.sort(() => Math.random() - 0.5);
         return {
@@ -115,30 +106,21 @@ export async function POST(req: Request, res: Response) {
           answer: question.answer,
           options: JSON.stringify(options),
           quizId: quiz.id, // comes from recently created quiz db recod above
-          questionType: 'mcq'
+          questionType: GameType.mcq
         }
-      })
-
-      await prisma.question.createMany({
-        data: manyData
-      })
-    } else if (type === "open_ended") {
-      type openQuestion = {
-        question: string,
-        answer: string,
-      }
-      let manyData = data.questions.map((question: openQuestion) => {
+      });
+    } else if (type === GameType.open_ended) {
+      manyData = questions.map((question: OpenEndedQuestion) => {
         return {
           question: question.question,
           answer: question.answer,
           quizId: quiz.id,
-          questionType: 'open_ended'
+          questionType: GameType.open_ended
         }
-      })
-      await prisma.question.createMany({
-        data: manyData
-      })
+      });
     }
+
+    await prisma.question.createMany({ data: manyData });
 
     // Now that the Quiz + Questions exist, create the new Game
     const newGame = await prisma.game.create({
