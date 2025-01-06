@@ -85,7 +85,6 @@ const useGames = ({ gameId, userRole }: Props) => {
   const [addSpectatorToGame, { loading: addSpectatorLoading, error: addSpectatorError }] = useMutation(ADD_SPECTATOR_TO_GAME, {
     update(cache, { data }) {
       if (!data) return;
-      console.log(data)
       cache.writeQuery<GameData, GetGameQueryArgs>({
         query: GET_GAME,
         variables: { gameId },

@@ -22,7 +22,6 @@ const ActiveGames = (props: Props) => {
   useSubscription<{ gameUpdated: GameData['game'] }>(GAME_UPDATED, {
     variables: {},
     onData: ({ client, data }) => {
-      console.log("Active Games: ", data)
       if (!data) return;
       const updatedGame = data.data?.gameUpdated;
       if (!updatedGame) return;

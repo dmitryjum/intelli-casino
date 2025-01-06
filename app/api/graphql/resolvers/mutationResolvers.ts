@@ -1,11 +1,10 @@
 import { GameType, PrismaClient, Role } from '@prisma/client';
-import { PubSub } from 'graphql-subscriptions'
 import { OPEN_DURATION } from '@/lib/constants';
 import { generateBlankedAnswer } from '@/lib/utils';
 import { GraphQLError } from 'graphql';
 import { getGameUpdateData } from '@/lib/utils';
+import { pubsub } from '../resolvers'; // shared resolvers have to use the same PubSub instance for sockets to work
 
-const pubsub = new PubSub();
 const prisma = new PrismaClient();
 const GAME_UPDATED = 'GAME_UPDATED';
 
@@ -39,7 +38,6 @@ export const mutationResolvers = {
 
         return getGameUpdateData(gameId, updatedData);
       });
-      console.log("openGame mutation resolver: ", updatedGame);
       pubsub.publish(GAME_UPDATED, { gameUpdated: updatedGame });
 
       return updatedGame;
@@ -98,7 +96,6 @@ export const mutationResolvers = {
           });
         }
       });
-
       pubsub.publish(GAME_UPDATED, { gameUpdated: updatedGame });
 
       return updatedGame;
@@ -201,7 +198,6 @@ export const mutationResolvers = {
           });
         }
       });
-
       pubsub.publish(GAME_UPDATED, { gameUpdated: updatedGame });
 
       return updatedGame;
@@ -236,7 +232,6 @@ export const mutationResolvers = {
             }
           }
           const updatedTransactionGame = await getGameUpdateData(gameId, updatedData);
-
           if (updatedTransactionGame?.quiz && updatedTransactionGame?.quiz?.questions) {
             updatedTransactionGame.quiz.questions = updatedTransactionGame.quiz.questions.slice(0, updatedTransactionGame.currentQuestionIndex + 1);
           } else {
@@ -247,7 +242,6 @@ export const mutationResolvers = {
               }
             });
           }
-          console.log("updated Transaction Game: ", updatedTransactionGame)
           return updatedTransactionGame;
         } else {
           throw new GraphQLError('Game not found', {
@@ -258,7 +252,6 @@ export const mutationResolvers = {
           });
         }
       });
-      console.log("addSpectatorToGame mutation: ", updatedGame);
       pubsub.publish(GAME_UPDATED, { gameUpdated: updatedGame });
       return updatedGame
     }

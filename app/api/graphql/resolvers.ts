@@ -5,7 +5,7 @@ import { GraphQLDateTime } from 'graphql-scalars';
 import { queryResolvers } from './resolvers/queryResolvers';
 import { mutationResolvers } from './resolvers/mutationResolvers';
 
-const pubsub = new PubSub();
+export const pubsub = new PubSub();
 const GAME_UPDATED = 'GAME_UPDATED';
 
 const resolvers: IResolvers = {
@@ -20,7 +20,6 @@ const resolvers: IResolvers = {
         () => pubsub.asyncIterator(GAME_UPDATED),
         (payload, variables) => {
           if (variables.gameId) {
-            
             return payload.gameUpdated.id === variables.gameId;
           }
           return true; // If no gameId provided, send all updates

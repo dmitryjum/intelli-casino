@@ -111,6 +111,5 @@ export const getGameUpdateData = async (gameId: string, updatedData: any) => {
     data: updatedData,
     include: includeClause,
   });
-  console.log('Updated game:', updatedGame);
   return updatedGame
 }

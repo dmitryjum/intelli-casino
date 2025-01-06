@@ -41,7 +41,7 @@ const OpenEnded = ({ gameId, userId }: Props) => {
       router.push(`/play/mcq/${gameId}`)
     }
 
-    if (userRole === Role.SPECTATOR && game.status === GameStatus.CLOSED && !isSpectator) {
+    if (userRole === Role.SPECTATOR && game.status !== GameStatus.FINISHED && !isSpectator) {
       addSpectatorToGame({
         variables: { gameId, userId }
       });
