@@ -4,16 +4,17 @@ import { redirect } from 'next/navigation'
 import React from 'react'
 
 type Props = {
-  searchParams: {
+  searchParams: Promise<{
     topic?: string;
-  }
+  }>
 }
 
 export const metadata = {
   title: "Quiz | Intelli Casino"
 }
 
-const QuizPage = async ({ searchParams }: Props) => {
+const QuizPage = async (props: Props) => {
+  const searchParams = await props.searchParams;
   const session = await getAuthSession();
   if (!session?.user) {
     return redirect('/')

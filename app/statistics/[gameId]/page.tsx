@@ -12,12 +12,18 @@ import { redirect } from 'next/navigation';
 import React from 'react'
 
 type Props = {
-  params: {
+  params: Promise<{
     gameId: string;
-  }
+  }>
 }
 
-const StatisticsPage = async ({params: {gameId}}: Props) => {
+const StatisticsPage = async (props: Props) => {
+  const params = await props.params;
+
+  const {
+    gameId
+  } = params;
+
   const session = await getAuthSession()
   if (!session?.user) {
     return redirect
@@ -35,8 +41,8 @@ const StatisticsPage = async ({params: {gameId}}: Props) => {
       userAnswers: true
     }
   });
-  
-  if (!game || game.status !== GameStatus.FINISHED) { return redirect("/quiz") };
+
+  if (!game || game.status !== GameStatus.FINISHED) { return redirect("/quiz") }
 
   // logic to calculate user play results accuracy
   let accuracy: number = 0
@@ -54,7 +60,7 @@ const StatisticsPage = async ({params: {gameId}}: Props) => {
   }
 
   accuracy = Math.round(accuracy * 100) / 100;
-  
+
   return (
     <>
       <div className="px-8 mx-auto max-w-7xl">

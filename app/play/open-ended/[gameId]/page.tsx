@@ -4,12 +4,18 @@ import { redirect } from 'next/navigation';
 import React from 'react';
 
 type Props = {
-  params: {
+  params: Promise<{
     gameId: string;
-  }
+  }>
 }
 
-const OpenEndedPage = async ({params: {gameId}}: Props) => {
+const OpenEndedPage = async (props: Props) => {
+  const params = await props.params;
+
+  const {
+    gameId
+  } = params;
+
   const session = await getAuthSession()
   if (!session?.user) {
     return redirect('/');
