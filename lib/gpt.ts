@@ -8,17 +8,27 @@ interface OutputFormat {
   [key: string]: string | string[] | OutputFormat;
 }
  
-export async function strict_output(
-  system_prompt: string,
-  user_prompt: string | string[],
-  output_format: OutputFormat,
-  default_category: string = "",
-  output_value_only: boolean = false,
-  model: string = "gpt-3.5-turbo",
-  temperature: number = 1,
-  num_tries: number = 3,
-  verbose: boolean = false
-) {
+export async function strict_output({
+  system_prompt,
+  user_prompt,
+  output_format,
+  default_category = "",
+  output_value_only = false,
+  model = "gpt-3.5-turbo",
+  temperature = 1,
+  num_tries = 5,
+  verbose = false
+}: {
+  system_prompt: string;
+  user_prompt: string | string[];
+  output_format: OutputFormat;
+  default_category?: string;
+  output_value_only?: boolean;
+  model?: string;
+  temperature?: number;
+  num_tries?: number;
+  verbose?: boolean;
+}) {
   // if the user input is in a list, we also process the output as a list of json
   const list_input: boolean = Array.isArray(user_prompt);
   // if the output format contains dynamic elements of < or >, then add to the prompt to handle dynamic elements
@@ -300,3 +310,57 @@ export async function strict_output(
 // This function is a robust way to interact with the OpenAI API, ensuring that the responses conform to a specified JSON structure.
 //  It handles various complexities, including dynamic elements, lists, and potential errors,
 //   making it a versatile tool for generating structured data from AI responses.
+
+
+// Exception example:
+// An exception occurred: SyntaxError: Expected ',' or '}' after property value in JSON at position 52(line 2 column 51)
+//     at JSON.parse(<anonymous>)
+//     at strict_output(lib / gpt.ts: 83: 29)
+//     at async generateQuestions(lib / questionGenerator.ts: 18: 16)
+//     at async POST(app / api / game / create / route.ts: 97: 22)
+// 81 |     // try-catch block to ensure output format is adhered to
+//   82 |     try {
+// > 83 | let output: any = JSON.parse(res);
+//      |                             ^
+//       84 |
+//       85 |       if (list_input) {
+//         86 |         if (!Array.isArray(output)) {
+// Current invalid json format[
+//             {
+//               "question": "What is the name of the Flintstones" pet dinosaur?","answer":"Dino","option1":"Pebbles","option2":"Rex","option3":"Spike"},
+// { "question": "Who is the next-door neighbors of the Flintstones?", "answer": "The Rubbles", "option1": "The Jetsons", "option2": "The Simpsons", "option3": "The Smiths" },
+// { "question": "Where do the Flintstones live?", "answer": "Bedrock", "option1": "Rockville", "option2": "Stonetown", "option3": "Pebbleville" }
+// ]
+// An exception occurred: SyntaxError: Expected ',' or '}' after property value in JSON at position 52(line 2 column 51)
+//     at JSON.parse(<anonymous>)
+//     at strict_output(lib / gpt.ts: 83: 29)
+//     at async generateQuestions(lib / questionGenerator.ts: 18: 16)
+//     at async POST(app / api / game / create / route.ts: 97: 22)
+//           81 |     // try-catch block to ensure output format is adhered to
+//             82 |     try {
+// > 83 | let output: any = JSON.parse(res);
+//      |                             ^
+//                 84 |
+//                 85 |       if (list_input) {
+//                   86 |         if (!Array.isArray(output)) {
+// Current invalid json format[
+//                       {
+//                         "question": "What is the name of the Flintstones" pet dinosaur?","answer":"Dino","option1":"Pebbles","option2":"Rex","option3":"Spike"},
+// { "question": "Who is the next-door neighbors of the Flintstones?", "answer": "The Rubbles", "option1": "The Jetsons", "option2": "The Simpsons", "option3": "The Smiths" },
+// { "question": "Where do the Flintstones live?", "answer": "Bedrock", "option1": "Rockville", "option2": "Stonetown", "option3": "Pebbleville" }
+// ]
+
+// Another error example:
+
+// An exception occurred: Error: Output format not in an array of json
+//     at strict_output(lib / gpt.ts: 97: 16)
+//     at async generateQuestions(lib / questionGenerator.ts: 9: 16)
+//     at async POST(app / api / game / create / route.ts: 97: 22)
+// 95 |       if (list_input) {
+//   96 |         if (!Array.isArray(output)) {
+// > 97 |           throw new Error("Output format not in an array of json");
+//       |                ^
+//       98 |         }
+//   99 |       } else {
+//   100 | output =[output];
+// Current invalid json format  { "question": "What are the potential long-term health effects of poor sleep quality?", "answer": "Increased risk of heart disease, obesity, diabetes, and decreased cognitive function." }
