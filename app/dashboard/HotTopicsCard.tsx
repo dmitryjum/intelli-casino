@@ -1,10 +1,10 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import React from 'react'
-import dynamic from 'next/dynamic'
+// import dynamic from 'next/dynamic'
 import { prisma } from '@/lib/db'
-
-const CustomWordCloud = dynamic(() => import('@/components/CustomWordCloud'), {ssr: false})
+import CustomWordCloud from '@/components/CustomWordCloud';
+// const CustomWordCloud = dynamic(() => import('@/components/CustomWordCloud'), {ssr: false})
 
 type Props = {}
 
@@ -17,7 +17,7 @@ const HotTopicsCard = async (props: Props) => {
     }
   })
   return (
-    <Card className='col-span-4'>
+    <Card>
       <CardHeader>
         <CardTitle className='text-2xl font-bold'>Hot Topics</CardTitle>
         <CardDescription>
@@ -25,7 +25,7 @@ const HotTopicsCard = async (props: Props) => {
         </CardDescription>
       </CardHeader>
 
-      <CardContent className='pl-2'>
+      <CardContent className='pl-2 [&_text]:cursor-pointer'>
         <CustomWordCloud formattedTopics={formattedTopics}/>
       </CardContent>
     </Card>

@@ -5,8 +5,14 @@ import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Progress } from "@/components/ui/progress"
 import { Brain, History, Zap, Trophy, Users, TrendingUp } from 'lucide-react'
+import HistoryComponent from '@/components/HistoryComponent'
+import { getAuthSession } from '@/lib/nextauth'
+import { redirect } from 'next/navigation'
+import HotTopicsCard from './HotTopicsCard'
 
-export default function NewDashboardClient() {
+export default async function NewDashboardClient() {
+  const session = await getAuthSession();
+  if (!session?.user) return redirect("/");
   // Placeholder data - replace with actual data fetching logic
   const activeGames = [
     { id: 1, topic: "Quantum Physics", status: "OPEN", players: 4, totalPlayers: 6 },
@@ -43,7 +49,7 @@ export default function NewDashboardClient() {
           <CardContent>
             <div className="text-3xl font-bold">28</div>
             <p className="text-sm text-muted-foreground">Quizzes completed</p>
-            <Progress value={75} className="mt-3" />
+            {/* <Progress value={75} className="mt-3" /> */}
           </CardContent>
         </Card>
         <Card>
@@ -54,12 +60,12 @@ export default function NewDashboardClient() {
           <CardContent>
             <div className="text-3xl font-bold">#42</div>
             <p className="text-sm text-muted-foreground">Global ranking</p>
-            <Badge className="mt-3" variant="secondary">Top 10%</Badge>
+            {/* <Badge className="mt-3" variant="secondary">Top 10%</Badge> */}
           </CardContent>
         </Card>
       </div>
 
-      <div className="mt-6">
+      <div className="grid gap-6 md:grid-cols-2 mt-6">
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -98,6 +104,7 @@ export default function NewDashboardClient() {
             </div>
           </CardContent>
         </Card>
+        <HotTopicsCard />
       </div>
 
       <div className="grid gap-6 mt-6 md:grid-cols-2 lg:grid-cols-3">
@@ -121,7 +128,7 @@ export default function NewDashboardClient() {
             <p className="text-sm text-muted-foreground">Hot topic of the day</p>
           </CardContent>
         </Card>
-        <Card>
+        {/* <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-lg font-semibold">Your Winnings</CardTitle>
             <Trophy className="h-5 w-5 text-muted-foreground" />
@@ -130,7 +137,7 @@ export default function NewDashboardClient() {
             <div className="text-3xl font-bold">Ξ 5.43</div>
             <p className="text-sm text-muted-foreground">Total ETH earned</p>
           </CardContent>
-        </Card>
+        </Card> */}
       </div>
     </div>
   )
