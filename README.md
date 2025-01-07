@@ -70,7 +70,16 @@ Follow these steps to set up the intelli-casino project locally:
     npx prisma db push
     ```
 
-6. **Run the Development Server:**
+6. **Start the GraphQL/WebSocket server:**
+    This server will handle GraphQL subscriptions to broadscast the game.
+
+    ```bash
+    npm run start:server
+    # or
+    yarn start:server
+    ```
+
+7. **Run the Development Server:**
 
     ```bash
     npm run dev
@@ -78,7 +87,7 @@ Follow these steps to set up the intelli-casino project locally:
     yarn dev
     ```
 
-7. **Access the Application:**
+8. **Access the Application:**
 
     Open [http://localhost:3000](http://localhost:3000) in your browser to view intelli-casino.
 
