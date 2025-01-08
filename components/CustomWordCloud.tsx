@@ -1,8 +1,11 @@
 'use client';
+import { useUserContext } from '@/app/context/UserContext';
 import { useTheme } from 'next-themes';
 import { useRouter } from 'next/navigation';
 import React from 'react'
-import D3WordCloud from 'react-d3-cloud';
+import { Role } from '@prisma/client'
+import dynamic from 'next/dynamic'
+const D3WordCloud = dynamic(() => import('react-d3-cloud'), {ssr: false});
 
 interface WordData {
   text: string,
@@ -20,6 +23,7 @@ const fontSizeMapper = (word: {value: number}) => {
 const CustomWordCloud = ({formattedTopics}: Props) => {
   const theme = useTheme()
   const router = useRouter();
+  const { userRole } = useUserContext();
   return (
     <>
       <D3WordCloud
@@ -30,7 +34,7 @@ const CustomWordCloud = ({formattedTopics}: Props) => {
        rotate={0}
        padding={10}
        onWordClick={(event, word) => {
-        router.push(`/quiz?topic=${word.text}`);
+        if (userRole === Role.PLAYER) router.push(`/quiz?topic=${word.text}`);
        }}
        fill={theme.theme === 'dark' ? 'white' : 'black'} />
     </>

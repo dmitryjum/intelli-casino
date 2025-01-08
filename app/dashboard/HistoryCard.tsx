@@ -12,15 +12,14 @@ const HistoryCard = (props: Props) => {
     <Card className="hover:cursor-pointer hover:opacity-75" onClick={() => {
       router.push("/history")
     }}>
-      <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-        <CardTitle className="text-2xl font-bold">History</CardTitle>
-        <History size={28} strokeWidth={2.5} />
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-lg font-semibold">Quiz History</CardTitle>
+        <History className="h-5 w-5 text-muted-foreground" />
       </CardHeader>
-
       <CardContent>
-        <p className="text-sm text-muted-foreground">
-          View past quiz attempts
-        </p>
+        <div className="text-3xl font-bold">28</div>
+        <p className="text-sm text-muted-foreground">Quizzes completed</p>
+        <p className="text-sm text-muted-foreground">Click to view your past quiz attempts</p>
       </CardContent>
     </Card>
   )
