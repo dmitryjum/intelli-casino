@@ -15,6 +15,11 @@ export const queryResolvers = {
           openAt: 'desc',
         },
         include: {
+          spectators: {
+            select: {
+              id: true
+            }
+          },
           quiz: {
             select: {
               id: true,
