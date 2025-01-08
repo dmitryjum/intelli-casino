@@ -6,14 +6,14 @@ import { Role } from '@prisma/client';
 import { UserContextType } from './UserContext.d'
 
 export const UserContext = createContext<UserContextType>({
-  userRole: Role.PLAYER,
+  userRole: Role.SPECTATOR,
   setUserRole: () => { },
   userId: '',
 })
 
 export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const { data: session } = useSession()
-  const [userRole, setUserRole] = useState(session?.user?.role || Role.PLAYER)
+  const [userRole, setUserRole] = useState(session?.user?.role || Role.SPECTATOR)
   const userId = session?.user?.id || ''
 
   useEffect(() => {

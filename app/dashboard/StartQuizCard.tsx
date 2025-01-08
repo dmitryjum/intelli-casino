@@ -12,6 +12,7 @@ type Props = {}
 const StartQuizCard = (props: Props) => {
   const router = useRouter()
   const { userRole } = useUserContext();
+
   if (userRole === Role.PLAYER) {
     return (
       <Card className="col-span-2">
@@ -28,4 +29,4 @@ const StartQuizCard = (props: Props) => {
   }
 }
 
-export default StartQuizCard
+export default React.memo(StartQuizCard);

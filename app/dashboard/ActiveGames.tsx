@@ -125,16 +125,10 @@ const ActiveGames = (props: Props) => {
                 </div>
               </div>
               <div className="flex items-center space-x-4">
-                <Badge variant={game.status === "OPEN" ? "outline" : "secondary"}>
-                  <span
-                    className={
-                      game.status === 'OPEN'
-                        ? 'px-2 py-1 text-green-800 bg-green-200 rounded'
-                        : 'px-2 py-1 text-yellow-800 bg-yellow-200 rounded'
-                    }
-                  >
+                <Badge variant={game.status === "OPEN" ? "outline" : "secondary"} className={
+                  game.status === 'OPEN' ? 'bg-green-200' : 'text-yellow-800'
+                }>
                     {game.status}
-                  </span>
                 </Badge>
                 {(userRole === Role.PLAYER && game.playerId === userId || userRole === Role.SPECTATOR && game.playerId !== userId) &&
                 <Button variant="outline" size="sm" onClick={() => {

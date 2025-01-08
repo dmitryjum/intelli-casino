@@ -89,9 +89,8 @@ const QuizCreation = ({ topicParam }: Props) => {
         .catch((error) => {
           console.error('Error during game opening: ', error);
         });
-        const quizTypeRoute: string = form.getValues('type') === GameType.open_ended ? 'open-ended' : 'mcq'
         setTimeout(() => {
-          router.push(`/play/${quizTypeRoute}/${gameId}`)
+          router.push(`/play/${form.getValues('type').replace(/_/g, '-')}/${gameId}`)
         }, 1000)
       },
       onError: (error) => {
