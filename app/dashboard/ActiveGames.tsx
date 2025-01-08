@@ -126,7 +126,7 @@ const ActiveGames = (props: Props) => {
               </div>
               <div className="flex items-center space-x-4">
                 <Badge variant={game.status === "OPEN" ? "outline" : "secondary"} className={
-                  game.status === 'OPEN' ? 'bg-green-200' : 'text-yellow-800'
+                  game.status === 'OPEN' ? 'bg-green-200' : 'bg-yellow-200'
                 }>
                     {game.status}
                 </Badge>

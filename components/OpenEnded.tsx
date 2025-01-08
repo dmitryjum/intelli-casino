@@ -123,7 +123,7 @@ const OpenEnded = ({ gameId, userId }: Props) => {
   if (error) return <div>Error: {error.message}</div>
 
   if (game.status === GameStatus.OPEN) {
-    return <GameOpenView gameId={gameId} timeStarted={game.timeStarted} openAt={game.openAt} closeGame={closeGame} />;
+    return <GameOpenView gameId={gameId} gameTopic={game.topic} timeStarted={game.timeStarted} openAt={game.openAt} closeGame={closeGame} />;
   }
 
   if (game.timeEnded) {
