@@ -20,6 +20,8 @@ declare module 'next-auth/jwt' {
   }
 }
 
+const nextAuthUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+
 export const authOptions: NextAuthOptions = {
   session: {
     strategy: 'jwt'
@@ -47,6 +49,18 @@ export const authOptions: NextAuthOptions = {
       }
       return session
     }
+  },
+  cookies: {
+    sessionToken: {
+      name: `${nextAuthUrl.startsWith('https://') ? '__Secure-' : ''}next-auth.session-token`,
+      options: {
+        domain: nextAuthUrl.includes('localhost') ? 'localhost' : '.' + new URL(nextAuthUrl).hostname,
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: nextAuthUrl.startsWith('https://'),
+      },
+    },
   },
   secret: process.env.NEXTAUTH_SECRET,
   adapter: PrismaAdapter(prisma),
