@@ -11,7 +11,7 @@ const httpLink = new HttpLink({
 // WebSocket link for subscriptions
 const wsLink = typeof window !== 'undefined' ? new GraphQLWsLink(
   createClient({
-    url: process.env.NEXT_PUBLIC_GRAPHQL_WS_URI || 'ws://localhost:4000/graphql'
+    url: process.env.NEXT_PUBLIC_GRAPHQL_WS_URI || 'ws://localhost:4000/api/graphql'
   })
 ) : null;
 
