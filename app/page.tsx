@@ -68,13 +68,10 @@ export default async function Home() {
                 </p>
                 
                 <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                  <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 text-lg px-8 py-6">
-                    Join Waitlist
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </Button>
-                  <Button size="lg" variant="outline" className="border-border hover:bg-muted text-lg px-8 py-6">
-                    Learn More
-                  </Button>
+                  <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-secondary/20 border border-secondary/30">
+                    <Sparkles className="w-5 h-5 text-secondary" />
+                    <span className="text-lg font-medium text-secondary">Beta version release coming soon</span>
+                  </div>
                 </div>
 
                 {/* Stats */}
@@ -98,17 +95,15 @@ export default async function Home() {
               
               <div className="flex-1 relative">
                 <div className="relative w-full max-w-lg mx-auto">
-                  <div className="absolute inset-0 bg-gradient-to-r from-primary/30 to-secondary/30 rounded-3xl blur-3xl" />
-                  <div className="relative bg-card border border-border rounded-3xl p-8 backdrop-blur-sm">
-                    <div className="relative w-full aspect-square">
-                      <Image
-                        src="/Intelli-Casino-logo.png"
-                        alt="Intelli Casino Logo"
-                        fill
-                        className="object-contain"
-                        priority
-                      />
-                    </div>
+                  <div className="absolute inset-0 bg-gradient-to-r from-primary/30 to-secondary/30 rounded-full blur-3xl" />
+                  <div className="relative w-full aspect-square">
+                    <Image
+                      src="/Intelli-Casino-logo.png"
+                      alt="Intelli Casino Logo"
+                      fill
+                      className="object-contain"
+                      priority
+                    />
                   </div>
                 </div>
               </div>
@@ -314,20 +309,14 @@ export default async function Home() {
                 Ready to Test Your <span className="text-primary">Intelligence</span>?
               </h2>
               <p className="text-lg text-muted-foreground">
-                Join thousands of players competing for glory and ETH. Create quizzes, challenge others, and win big in the ultimate intellectual arena.
+                Create quizzes, challenge others, and win big in the ultimate intellectual arena.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 text-lg px-8 py-6">
-                  Join the Waitlist
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
+                <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary/20 border border-primary/30">
+                  <Sparkles className="w-5 h-5 text-primary" />
+                  <span className="text-lg font-medium text-primary">Beta version release coming soon</span>
+                </div>
               </div>
-              <p className="text-sm text-muted-foreground">
-                By signing up, you agree to our{" "}
-                <Link className="text-primary hover:underline underline-offset-2" href="/terms">
-                  Terms & Conditions
-                </Link>
-              </p>
             </div>
           </div>
         </section>
