@@ -1,5 +1,5 @@
 import { getAuthSession } from '@/lib/nextauth';
-import { ArrowRight, Coins, Linkedin, Play } from 'lucide-react';
+import { ArrowRight, Coins, Linkedin } from 'lucide-react';
 import { Exo_2, Orbitron } from 'next/font/google';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -58,10 +58,10 @@ const timelineSteps = [
 ];
 
 const answerOptions = [
-  { label: 'A', text: 'Bitcoin' },
-  { label: 'B', text: 'Ethereum' },
-  { label: 'C', text: 'Dogecoin' },
-  { label: 'D', text: 'Chainlink' },
+  { label: 'A', text: 'Dark matter and dark energy' },
+  { label: 'B', text: 'The final fate of black holes' },
+  { label: 'C', text: 'Whether life exists beyond Earth' },
+  { label: 'D', text: 'How the universe began and ends' },
 ];
 
 function neonCardClasses(extra = '') {
@@ -160,11 +160,11 @@ export default async function Home() {
                 </span>{' '}
                 The Future of Trivia Betting is Here.
               </h1>
-              <p className="mt-5 max-w-xl text-base leading-7 text-white/70 sm:text-lg">
+              <p className="mt-5 max-w-lg text-base leading-7 text-white/70 sm:text-lg">
                 Where knowledge meets excitement. Create quizzes, play games, and bet on intellectual challenges.
               </p>
 
-              <div id="waitlist" className={`${neonCardClasses('mt-8 w-full max-w-md p-5 sm:p-6')}`}>
+              <div id="waitlist" className={`${neonCardClasses('mt-8 w-full max-w-lg p-5 sm:p-6')}`}>
                 <div className="rounded-2xl bg-transparent p-2">
                   <p className="font-[family:var(--font-orbitron)] text-center text-2xl font-medium tracking-wide text-white">
                     Coming Soon
@@ -300,22 +300,22 @@ export default async function Home() {
               </p>
             </div>
 
-            <div className={`${neonCardClasses('mx-auto w-full max-w-[34rem] p-4 sm:p-5')}`}>
+            <div className={`${neonCardClasses('mx-auto w-full p-4 sm:p-5')}`}>
               <div className="rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.03))] p-4 sm:p-5">
                 <div className="flex items-center justify-between gap-4 text-[11px] uppercase tracking-[0.22em] text-white/40">
                   <span className="inline-flex items-center gap-2">
                     <Coins className="h-3.5 w-3.5 text-cyan-200" />
-                    Wager flow
+                    Cosmos
                   </span>
-                  <span>Live 02</span>
+                  <span>38s left</span>
                 </div>
                 <div className="mt-4">
-                  <h3 className="max-w-[24ch] text-lg font-medium leading-7 text-white sm:text-xl">
-                    What is the latest sustaining innovation inside Intelli Casino?
+                  <h3 className="text-lg font-medium leading-7 text-white sm:text-xl">
+                    What mysteries of the cosmos have yet to be unraveled by humanity?
                   </h3>
                 </div>
                 <div className="mt-5 h-2 rounded-full bg-white/8">
-                  <div className="h-2 w-[62%] rounded-full bg-[linear-gradient(90deg,#67e8f9,#d946ef)] shadow-[0_0_16px_rgba(217,70,239,0.4)]" />
+                  <div className="h-2 w-1/3 rounded-full bg-[linear-gradient(90deg,#67e8f9,#d946ef)] shadow-[0_0_16px_rgba(217,70,239,0.4)]" />
                 </div>
                 <div className="mt-6 grid gap-3 sm:grid-cols-2">
                   {answerOptions.map((option, index) => (
@@ -323,7 +323,7 @@ export default async function Home() {
                       key={option.label}
                       type="button"
                       className={`flex min-h-[3.25rem] items-center gap-3 rounded-2xl border px-4 text-left text-sm text-white/74 transition ${
-                        index === 3
+                        index === 0
                           ? 'border-fuchsia-300/40 bg-[linear-gradient(90deg,rgba(34,211,238,0.14),rgba(217,70,239,0.18))] text-white shadow-[0_0_24px_rgba(217,70,239,0.18)]'
                           : 'border-white/10 bg-white/[0.04] hover:border-cyan-300/24 hover:bg-white/[0.07]'
                       }`}
@@ -336,9 +336,8 @@ export default async function Home() {
                   ))}
                 </div>
                 <div className="mt-5 flex items-center justify-between">
-                  <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-2 text-xs text-white/56">
-                    <Play className="h-3.5 w-3.5 text-cyan-200" />
-                    Next round primed
+                  <div className="inline-flex items-center gap-2 text-xs text-white/44">
+                    <span>1 / 3</span>
                   </div>
                   <div className="inline-flex items-center gap-1 rounded-full bg-[linear-gradient(90deg,#67e8f9,#d946ef)] px-4 py-2 text-xs font-semibold text-slate-950">
                     Next
