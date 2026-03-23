@@ -1,6 +1,3 @@
-// import SignInButton from '@/components/SignInButton';
-import { getAuthSession } from '@/lib/nextauth';
-import { redirect } from 'next/navigation';
 import Link from "next/link"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Brain, Clock, Users, TrendingUp, Coins, Eye, Wallet } from "lucide-react"
@@ -9,9 +6,16 @@ import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 
 export default async function Home() {
-  const session = await getAuthSession()
-  if (session?.user) {
-    redirect('/dashboard')
+  if (process.env.DATABASE_URL?.trim()) {
+    const [{ getAuthSession }, { redirect }] = await Promise.all([
+      import('@/lib/nextauth'),
+      import('next/navigation'),
+    ]);
+    const session = await getAuthSession();
+
+    if (session?.user) {
+      redirect('/dashboard');
+    }
   }
 
   return (
